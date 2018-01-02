@@ -9,7 +9,17 @@ To access git dependencies (for example, via tools.deps), we need some way to do
 and cache the working tree as indicated by git shas. The git library can be maintained and updated
 via fetch. The working trees (at a sha) are immutable and can be cached and reused by anyone.
 
+## Usage
+
+TODO
+
 ## Authentication
+
+TODO
+
+## Cache directories
+
+TODO
 
 ## Release Information
 
