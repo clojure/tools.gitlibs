@@ -1,0 +1,6 @@
+{:paths ["src/main/clojure"]
+ :deps 
+ {org.clojure/clojure {:mvn/version "1.8.0"}
+  org.eclipse.jgit/org.eclipse.jgit {:mvn/version "4.9.1.201712030800-r"}
+	com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"}
+	com.jcraft/jsch.agentproxy.jsch {:mvn/version "0.0.9"}}}
