@@ -7,7 +7,7 @@ An API for retrieving, caching, and programatically accessing git libraries.
 
 To access git dependencies (for example, via tools.deps), one must download git directories
 and working trees as indicated by git shas. This library provides this functionality and also
-builds a cache of git dirs and working trees that can be reused.
+keeps a cache of git dirs and working trees that can be reused.
 
 ## Usage
 
@@ -60,10 +60,14 @@ which should return one or more registered identities, usually one at ~/.ssh/id_
 
 If your key has a passphrase, you will need to enter it at this time.
 
+User/password authentication is not supported for any protocol.
+
 ## Cache directory
 
 By default, the cache will be built in ~/.gitlibs/. To change the cache location, use kwarg option
 `:cache-dir "/tmp/somewhere"` on `ensure-git-dir` and `ensure-working-tree`.
+
+The cache directory is just a cache and can be safely removed if needed.
 
 ## Release Information
 
