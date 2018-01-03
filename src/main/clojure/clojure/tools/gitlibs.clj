@@ -54,8 +54,8 @@
     :else (throw (ex-info "" {}))))
 
 (defn descendant
-  "Returns rev which is a descendant of all other revs or nil if no such relationship
-  can be established."
+  "Returns rev in git url which is a descendant of all other revs,
+  or nil if no such relationship can be established."
   [url revs]
   (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
     (try
