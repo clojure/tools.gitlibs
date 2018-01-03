@@ -14,30 +14,20 @@ keeps a cache of git dirs and working trees that can be reused.
 ```clojure
 (require '[clojure.tools.gitlibs :as gl])
 
-;; Obtain a "git repo" - this will ensure the git directory is downloaded
-;; and cached and will return a package of information that can be used
-;; in subsequent calls
-(def git-repo (gl/ensure-git-dir "https://github.com/clojure/spec.alpha.git"))
+;; Obtain a git dir which we be downloaded and cached if necessary
+(def git-dir (gl/ensure-git-dir "https://github.com/clojure/spec.alpha.git"))
+;; => "/Users/me/.gitlibs/_repos/github.com/clojure/spec.alpha"
 
-;; git-repo:
-;; {:git-dir #object[java.io.File 0x67817f98 "/Users/me/.gitlibs/_repos/github.com/clojure/spec.alpha"],
-;;  :url "https://github.com/clojure/spec.alpha.git"}
+;; Resolve a partial sha, full sha or annotated tag name to a full sha:
+(def commit (gl/full-sha git-dir "739c1af5"))
+;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 
-;; Obtain the working tree at a particular (partial) sha - may also use
-;; full shas or annotated tag names
-(def wt (gl/ensure-working-tree git-repo 'org.clojure/spec.alpha "739c1af5"))
+;; Obtain the working tree at a full sha
+(def wt (gl/ensure-working-tree git-dir 'org.clojure/spec.alpha commit))
+;; => "/Users/alex/.gitlibs/libs/org.clojure/spec.alpha/739c1af56dae621aedf1bb282025a0d676eff713"
 
-;; wt:
-;; #object[java.io.File 0x4641b1fe "/Users/alex/.gitlibs/libs/org.clojure/spec.alpha/739c1af5"]
-
-;; Resolve a partial sha to a full sha:
-(def commit (gl/full-sha git-repo "739c1af5"))
-
-;; commit:
-;; "739c1af56dae621aedf1bb282025a0d676eff713"
-
-;; Check whether some dummy commit is an ancestor
-(gl/ancestor? git-repo "12345678901234567890abcdefabcdefabcdefab" commit)
+;; Check whether a commit is an ancestor
+(gl/ancestor? git-dir "12345678901234567890abcdefabcdefabcdefab" commit)
 false
 ```
 

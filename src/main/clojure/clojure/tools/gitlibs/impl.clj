@@ -25,12 +25,16 @@
                 (doto (proxy-super getJSch hc fs)
                   (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
 
-(defn- call-with
-  [^String url ^GitCommand command]
-  (if (and (instance? TransportCommand command)
-        (not (str/starts-with? url "http")))
-    (.. ^TransportCommand command (setTransportConfigCallback @ssh-callback) call)
-    (.call command)))
+(defn- call-with-auth
+  ([command]
+    (call-with-auth
+      (.. command getRepository getConfig (getString "remote" "origin" "url"))
+      command))
+  ([^String url ^GitCommand command]
+   (if (and (instance? TransportCommand command)
+         (not (str/starts-with? url "http")))
+     (.. ^TransportCommand command (setTransportConfigCallback @ssh-callback) call)
+     (.call command))))
 
 (defn git-repo
   (^Repository [git-dir]
@@ -42,15 +46,15 @@
        (.setWorkTree (jio/file rev-dir))))))
 
 (defn git-fetch
-  ^Git [git-dir rev-dir ^String url]
+  ^Git [git-dir rev-dir]
   (let [git (Git. (git-repo git-dir rev-dir))]
-    (call-with url (.. git fetch))
+    (call-with-auth (.. git fetch))
     git))
 
 ;; TODO: restrict clone to an optional refspec?
 (defn git-clone-bare
-  ^File [^String url git-dir]
-  (call-with url
+  [url git-dir]
+  (call-with-auth url
     (.. (Git/cloneRepository) (setURI url) (setGitDir (jio/file git-dir))
       (setBare true)
       (setNoCheckout true)
@@ -58,5 +62,5 @@
   git-dir)
 
 (defn git-checkout
-  [^Git git ^String rev ^String url]
-  (call-with url (.. git checkout (setStartPoint rev) (setAllPaths true))))
+  [^Git git ^String rev]
+  (call-with-auth (.. git checkout (setStartPoint rev) (setAllPaths true))))
