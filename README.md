@@ -14,27 +14,27 @@ keeps a cache of git dirs and working trees that can be reused.
 ```clojure
 (require '[clojure.tools.gitlibs :as gl])
 
-;; Resolve a partial sha, full sha or annotated tag name to a full sha:
-(gl/full-sha "https://github.com/clojure/spec.alpha.git" "739c1af5")
+;; Resolve a partial sha, full sha or annotated tag name to a full sha
+(gl/full-sha "https://github.com/clojure/spec.alpha.git" "739c1af")
 ;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 
 ;; Obtain the working tree at a full sha
-(gl/working-tree "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
-;; => "/Users/alex/.gitlibs/libs/org.clojure/spec.alpha/739c1af56dae621aedf1bb282025a0d676eff713"
+(gl/working-tree "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af")
+;; => "/Users/me/.gitlibs/libs/org.clojure/spec.alpha/739c1af56dae621aedf1bb282025a0d676eff713"
 
 ;; Check whether a commit is an ancestor
-(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "12345678901234567890abcdefabcdefabcdefab" "739c1af56dae621aedf1bb282025a0d676eff713")
-;; => false
+(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0" "739c1af")  ;; => true
+(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "739c1af" "607aef0")  ;; => false
+(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "1234567" "739c1af")  ;; => false
 ```
 
 ## Authentication
 
 The following git url types are supported:
 
-* https - for public anonymous clone and fetch of public repos
-* ssh - for authenticated clone and fetch of private repos
-* http - may work for public repos, but not supported or recommended
-* git - may work for public repos, but not supported or recommended
+* `https` - for public anonymous clone and fetch of public repos
+* `ssh` - for authenticated clone and fetch of private repos
+* `http` and `git` protocols are plain-text and not supported or recommended
 
 ssh authentication works by connecting to the local ssh agent, which must have a registered identity. To check whether you have registered identities, use:
 
