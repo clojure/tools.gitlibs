@@ -7,6 +7,11 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.gitlibs
+  "An API for retrieving and caching git repos and working trees.
+
+  The git url can be either an https url for anonymous checkout or an ssh url
+  for private access. revs can be either full sha, prefix sha, or an annotated
+  tag name."
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.gitlibs.impl :as impl])
@@ -23,38 +28,45 @@
   (let [git-dir (impl/ensure-git-dir url)]
     (if (ObjectId/isId rev)
       rev
-      (.. (impl/git-repo git-dir) (resolve rev) getName))))
+      (let [rev (.resolve (impl/git-repo git-dir) rev)]
+        (if rev
+          (.getName rev)
+          nil)))))
 
 (defn working-tree
   "Ensure a working tree at rev for the git url representing the library lib,
-  returns the directory path.
-
-  url should be either an https url for anonymous checkout or an ssh url for
-  private access. rev should be a full sha, a sha prefix, or an annotated tag.
-  lib is a qualified symbol where the qualifier is a controlled or conveyed identity."
+  returns the directory path. lib is a qualified symbol where the qualifier is a
+  controlled or conveyed identity."
   [url lib rev]
   (let [git-dir (jio/file (impl/ensure-git-dir url))
-        rev-dir (jio/file @impl/default-git-dir "libs" (namespace lib) (name lib) rev)]
+        full-sha (full-sha url rev)
+        rev-dir (jio/file @impl/default-git-dir "libs" (namespace lib) (name lib) full-sha)]
     (when (not (.exists rev-dir))
-      (impl/git-checkout (impl/git-fetch git-dir rev-dir) rev))
+      (impl/git-checkout (impl/git-fetch git-dir rev-dir) full-sha))
     (.getCanonicalPath rev-dir)))
 
 (defn ancestor?
-  "Checks whether ancestor-sha is an ancestor of child-sha. Both shas should be full shas."
-  [child-git-url ^String ancestor-sha ^String child-sha]
-  (let [child-git-dir (impl/ensure-git-dir child-git-url)
+  "Checks whether ancestor-rev is an ancestor of child-rev."
+  [child-url ^String ancestor-rev ^String child-rev]
+  (let [child-git-dir (impl/ensure-git-dir child-url)
         repo (impl/git-repo child-git-dir)
         walk (RevWalk. repo)]
     (try
-      (let [child-commit (.lookupCommit walk (ObjectId/fromString child-sha))
-            ancestor-commit (.lookupCommit walk (ObjectId/fromString ancestor-sha))]
-        (.isMergedInto walk ancestor-commit child-commit))
+      (let [child-sha (full-sha child-url child-rev)
+            ancestor-sha (full-sha child-url ancestor-rev)]
+        (if (and child-sha ancestor-sha)
+          (let [child-commit (.lookupCommit walk (ObjectId/fromString child-sha))
+                ancestor-commit (.lookupCommit walk (ObjectId/fromString ancestor-sha))]
+            (.isMergedInto walk ancestor-commit child-commit))
+          ;; throw?
+          false))
       (catch MissingObjectException e false)
       (finally (.dispose walk)))))
 
 (comment
   (full-sha "https://github.com/clojure/spec.alpha.git" "739c1af5")
   (working-tree "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
-  (ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0643f6cf920293130d45e6160d93fda908" "739c1af56dae621aedf1bb282025a0d676eff713")
-  (ancestor? "https://github.com/clojure/spec.alpha.git" "12345678901234567890abcdefabcdefabcdefab" "739c1af56dae621aedf1bb282025a0d676eff713")
+  (ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0" "739c1af5") ;; true
+  (ancestor? "https://github.com/clojure/spec.alpha.git" "739c1af5" "607aef0") ;; false
+  (ancestor? "https://github.com/clojure/spec.alpha.git" "1234567" "739c1af5") ;; false
   )
