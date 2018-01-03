@@ -9,7 +9,6 @@
 (ns clojure.tools.gitlibs
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str]
     [clojure.tools.gitlibs.impl :as impl])
   (:import
     [java.io File]
@@ -17,59 +16,34 @@
     [org.eclipse.jgit.revwalk RevWalk]
     [org.eclipse.jgit.errors MissingObjectException]))
 
-(def ^:private default-git-dir
-  (delay
-    (let [home (System/getProperty "user.home")
-          gitlibs (jio/file home ".gitlibs")]
-      (.getAbsolutePath gitlibs))))
+(defn full-sha
+  "Takes a git url and a rev, and returns the full commit sha. rev may be a
+  partial sha, full sha, or annotated tag name."
+  [url rev]
+  (let [git-dir (impl/ensure-git-dir url)]
+    (if (ObjectId/isId rev)
+      rev
+      (.. (impl/git-repo git-dir) (resolve rev) getName))))
 
-(defn- clean-url
-  "Chop leading protocol, trailing .git, replace :'s with /"
-  [url]
-  (-> url
-    (str/split #"://")
-    last
-    (str/replace #"\.git$" "")
-    (str/replace #":" "/")))
-
-(defn ensure-git-dir
-  "Ensure the bare git dir for the specified url, returns path to dir.
-  cache-dir will be coerced to a file.
-
-  Optional :cache-dir kwarg can specify root, else ~/.gitlibs."
-  [url & {:keys [cache-dir] :or {cache-dir @default-git-dir}}]
-  (let [git-dir (jio/file cache-dir "_repos" (clean-url url))]
-    (when-not (.exists git-dir)
-      (impl/git-clone-bare url git-dir))
-    (.getCanonicalPath git-dir)))
-
-(defn ensure-working-tree
-  "Ensure a working tree at rev for the git dir representing the library lib,
+(defn working-tree
+  "Ensure a working tree at rev for the git url representing the library lib,
   returns the directory path.
 
   url should be either an https url for anonymous checkout or an ssh url for
   private access. rev should be a full sha, a sha prefix, or an annotated tag.
-  lib is a qualified symbol where the qualifier is a controlled or conveyed identity.
-
-  Optional :cache-dir kwarg can specify root, else ~/.gitlibs."
-  [git-dir lib rev & {:keys [cache-dir] :or {cache-dir @default-git-dir}}]
-  (let [rev-dir (jio/file cache-dir "libs" (namespace lib) (name lib) rev)]
+  lib is a qualified symbol where the qualifier is a controlled or conveyed identity."
+  [url lib rev]
+  (let [git-dir (jio/file (impl/ensure-git-dir url))
+        rev-dir (jio/file @impl/default-git-dir "libs" (namespace lib) (name lib) rev)]
     (when (not (.exists rev-dir))
       (impl/git-checkout (impl/git-fetch git-dir rev-dir) rev))
     (.getCanonicalPath rev-dir)))
 
-(defn full-sha
-  "Takes a git dir and a rev, and returns the full commit sha. rev may be a
-  partial sha, full sha, or annotated tag name."
-  ^String [git-dir rev]
-  (if (ObjectId/isId rev)
-    rev
-    (.. (impl/git-repo git-dir) (resolve rev) getName)))
-
 (defn ancestor?
   "Checks whether ancestor-sha is an ancestor of child-sha. Both shas should be full shas."
-  [child-git-dir ^String ancestor-sha ^String child-sha]
-  (let [repo (impl/git-repo child-git-dir)
+  [child-git-url ^String ancestor-sha ^String child-sha]
+  (let [child-git-dir (impl/ensure-git-dir child-git-url)
+        repo (impl/git-repo child-git-dir)
         walk (RevWalk. repo)]
     (try
       (let [child-commit (.lookupCommit walk (ObjectId/fromString child-sha))
@@ -79,10 +53,8 @@
       (finally (.dispose walk)))))
 
 (comment
-  (def git-dir (ensure-git-dir "https://github.com/clojure/spec.alpha.git"))
-  (def commit (full-sha git-dir "739c1af5"))
-  (def wt (ensure-working-tree git-dir 'org.clojure/spec.alpha commit))
-
-  (ancestor? git-dir commit commit)
-  (ancestor? git-dir commit "739c1af56dae621aedf1bb282025a0d676eff712")
+  (full-sha "https://github.com/clojure/spec.alpha.git" "739c1af5")
+  (working-tree "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
+  (ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0643f6cf920293130d45e6160d93fda908" "739c1af56dae621aedf1bb282025a0d676eff713")
+  (ancestor? "https://github.com/clojure/spec.alpha.git" "12345678901234567890abcdefabcdefabcdefab" "739c1af56dae621aedf1bb282025a0d676eff713")
   )

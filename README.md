@@ -14,21 +14,17 @@ keeps a cache of git dirs and working trees that can be reused.
 ```clojure
 (require '[clojure.tools.gitlibs :as gl])
 
-;; Obtain a git dir which we be downloaded and cached if necessary
-(def git-dir (gl/ensure-git-dir "https://github.com/clojure/spec.alpha.git"))
-;; => "/Users/me/.gitlibs/_repos/github.com/clojure/spec.alpha"
-
 ;; Resolve a partial sha, full sha or annotated tag name to a full sha:
-(def commit (gl/full-sha git-dir "739c1af5"))
+(gl/full-sha "https://github.com/clojure/spec.alpha.git" "739c1af5")
 ;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 
 ;; Obtain the working tree at a full sha
-(def wt (gl/ensure-working-tree git-dir 'org.clojure/spec.alpha commit))
+(gl/working-tree "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
 ;; => "/Users/alex/.gitlibs/libs/org.clojure/spec.alpha/739c1af56dae621aedf1bb282025a0d676eff713"
 
 ;; Check whether a commit is an ancestor
-(gl/ancestor? git-dir "12345678901234567890abcdefabcdefabcdefab" commit)
-false
+(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "12345678901234567890abcdefabcdefabcdefab" "739c1af56dae621aedf1bb282025a0d676eff713")
+;; => false
 ```
 
 ## Authentication

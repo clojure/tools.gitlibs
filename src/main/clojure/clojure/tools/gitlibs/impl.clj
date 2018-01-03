@@ -64,3 +64,29 @@
 (defn git-checkout
   [^Git git ^String rev]
   (call-with-auth (.. git checkout (setStartPoint rev) (setAllPaths true))))
+
+(def default-git-dir
+  (delay
+    (let [home (System/getProperty "user.home")
+          gitlibs (jio/file home ".gitlibs")]
+      (.getAbsolutePath gitlibs))))
+
+(defn- clean-url
+  "Chop leading protocol, trailing .git, replace :'s with /"
+  [url]
+  (-> url
+    (str/split #"://")
+    last
+    (str/replace #"\.git$" "")
+    (str/replace #":" "/")))
+
+(defn ensure-git-dir
+  "Ensure the bare git dir for the specified url, returns path to dir.
+  cache-dir will be coerced to a file.
+
+  Optional :cache-dir kwarg can specify root, else ~/.gitlibs."
+  [url & {:keys [cache-dir] :or {cache-dir @default-git-dir}}]
+  (let [git-dir (jio/file cache-dir "_repos" (clean-url url))]
+    (when-not (.exists git-dir)
+      (git-clone-bare url git-dir))
+    (.getCanonicalPath git-dir)))
