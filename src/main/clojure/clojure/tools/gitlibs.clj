@@ -32,7 +32,7 @@
     (str/replace #"\.git$" "")
     (str/replace #":" "/")))
 
-(defn- ensure-git-dir
+(defn ensure-git-dir
   "Ensure the bare git dir for the specified url, returns a map
   representing the git repo. cache-dir will be coerced to a file.
 
