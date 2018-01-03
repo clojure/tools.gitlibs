@@ -14,18 +14,18 @@ keeps a cache of git dirs and working trees that can be reused.
 ```clojure
 (require '[clojure.tools.gitlibs :as gl])
 
-;; Resolve a partial sha, full sha or tag name to a full sha
+;; Given a git repo url and a rev (partial sha, full sha, or tag name), resolve to a full sha.
 (gl/resolve "https://github.com/clojure/spec.alpha.git" "739c1af")
 ;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 
-;; Obtain the working tree at a rev
+;; Given a git repo url, library identifier, and a rev, return a path to the working tree
 (gl/procure "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af")
 ;; => "/Users/me/.gitlibs/libs/org.clojure/spec.alpha/739c1af56dae621aedf1bb282025a0d676eff713"
 
-;; Check whether a commit is an ancestor
-(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0" "739c1af")  ;; => true
-(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "739c1af" "607aef0")  ;; => false
-(gl/ancestor? "https://github.com/clojure/spec.alpha.git" "1234567" "739c1af")  ;; => false
+;; Given git repo url, and a collection of revs, return the full sha of the one commit that is
+;; a descendant of all other revs or nil if no such rev exists in the collection.
+(gl/descendant "https://github.com/clojure/spec.alpha.git" ["607aef0" "739c1af"])
+;; => "607aef0..."
 ```
 
 ## Authentication

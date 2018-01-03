@@ -40,33 +40,39 @@
   [url lib rev]
   (let [git-dir (jio/file (impl/ensure-git-dir url))
         full-sha (resolve url rev)
-        rev-dir (jio/file @impl/default-git-dir "libs" (namespace lib) (name lib) full-sha)]
+        rev-dir (jio/file impl/cache-dir "libs" (namespace lib) (name lib) full-sha)]
     (when (not (.exists rev-dir))
       (impl/git-checkout (impl/git-fetch git-dir rev-dir) full-sha))
     (.getCanonicalPath rev-dir)))
 
-(defn ancestor?
-  "Checks whether ancestor-rev is an ancestor of child-rev."
-  [child-url ^String ancestor-rev ^String child-rev]
-  (let [child-git-dir (impl/ensure-git-dir child-url)
-        repo (impl/git-repo child-git-dir)
-        walk (RevWalk. repo)]
+(defn- commit-comparator
+  [walk x y]
+  (cond
+    (= x y) 0
+    (.isMergedInto walk x y) -1
+    (.isMergedInto walk y x) 1
+    :else (throw (ex-info "" {}))))
+
+(defn descendant
+  "Returns rev which is a descendant of all other revs or nil if no such relationship
+  can be established."
+  [url revs]
+  (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
     (try
-      (let [child-sha (resolve child-url child-rev)
-            ancestor-sha (resolve child-url ancestor-rev)]
-        (if (and child-sha ancestor-sha)
-          (let [child-commit (.lookupCommit walk (ObjectId/fromString child-sha))
-                ancestor-commit (.lookupCommit walk (ObjectId/fromString ancestor-sha))]
-            (.isMergedInto walk ancestor-commit child-commit))
-          ;; throw?
-          false))
-      (catch MissingObjectException e false)
+      (let [shas (map (partial full-sha url) revs)]
+        (if (not-empty (filter nil? shas))
+          nil ;; can't resolve all shas in this repo
+          (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
+                ret (first (sort (partial commit-comparator walk) commits))]
+            (.. ret getId name))))
+      (catch MissingObjectException e nil)
+      (catch clojure.lang.ExceptionInfo e nil)
       (finally (.dispose walk)))))
 
 (comment
   (resolve "https://github.com/clojure/spec.alpha.git" "739c1af5")
   (procure "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
-  (ancestor? "https://github.com/clojure/spec.alpha.git" "607aef0" "739c1af5") ;; true
-  (ancestor? "https://github.com/clojure/spec.alpha.git" "739c1af5" "607aef0") ;; false
-  (ancestor? "https://github.com/clojure/spec.alpha.git" "1234567" "739c1af5") ;; false
+  (descendant "https://github.com/clojure/spec.alpha.git" ["607aef0" "739c1af"]) ;; "607aef0..."
+  (descendant "https://github.com/clojure/spec.alpha.git" ["739c1af" "607aef0"]) ;; "607aef0..."
+  (descendant "https://github.com/clojure/spec.alpha.git" ["1234567" "739c1af"]) ;; nil
   )
