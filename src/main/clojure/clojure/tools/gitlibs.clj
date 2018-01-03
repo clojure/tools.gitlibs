@@ -59,7 +59,7 @@
   [url revs]
   (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
     (try
-      (let [shas (map (partial full-sha url) revs)]
+      (let [shas (map (partial resolve url) revs)]
         (if (not-empty (filter nil? shas))
           nil ;; can't resolve all shas in this repo
           (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
