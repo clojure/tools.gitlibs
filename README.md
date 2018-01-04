@@ -50,10 +50,7 @@ User/password authentication is not supported for any protocol.
 
 ## Cache directory
 
-By default, the cache will be built in ~/.gitlibs/. To change the cache location, use kwarg option
-`:cache-dir "/tmp/somewhere"` on `ensure-git-dir` and `ensure-working-tree`.
-
-The cache directory is just a cache and can be safely removed if needed.
+Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
 
 ## Release Information
 
