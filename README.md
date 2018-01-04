@@ -16,7 +16,6 @@ The following API is provided in `clojure.tools.gitlibs`:
 * `(resolve git-url rev) ;; returns full sha of rev in git-url`
 * `(procure git-url lib rev) ;; returns working tree directory for git-url identified as lib at rev`
 * `(descendant git-url revs) ;; returns rev which is a descedant of all revs, or nil if none`
-```
 
 ### Git urls
 
