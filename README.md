@@ -57,10 +57,10 @@ The cache directory is just a cache and can be safely removed if needed.
 
 ## Release Information
 
-Latest release: 0.1.8 
+Latest release: 0.2.32
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates:  `org.clojure/tools.gitlibs {:mvn/version "0.1.8"}`
+* Coordinates:  `org.clojure/tools.gitlibs {:mvn/version "0.2.32"}`
 
 # Developer Information
 
