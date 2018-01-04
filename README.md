@@ -11,10 +11,60 @@ keeps a cache of git dirs and working trees that can be reused.
 
 ## Usage
 
+The following API is provided in `clojure.tools.gitlibs`:
+
+* `(resolve git-url rev) ;; returns full sha of rev in git-url`
+* `(procure git-url lib rev) ;; returns working tree directory for git-url identified as lib at rev`
+* `(descendant git-url revs) ;; returns rev which is a descedant of all revs, or nil if none`
+```
+
+### Git urls
+
+The following git url types are supported:
+
+* `https` - for public anonymous clone and fetch of public repos
+* `ssh` - for authenticated clone and fetch of private repos
+* `http` and `git` protocols are plain-text and not supported or recommended
+
+### SSH authentication for private repositories
+
+ssh authentication works by connecting to the local ssh agent (ssh-agent on *nix or Pageant via PuTTY on Windows).
+The ssh-agent must have a registered identity for the key being used to access the Git repository.
+To check whether you have registered identities, use:
+
+`ssh-add -l`
+
+which should return one or more registered identities, typically the one at `~/.ssh/id_rsa`.
+
+For more information on creating keys and using the ssh-agent to manage your ssh identities, GitHub provides excellent info:
+
+* https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
+* https://help.github.com/articles/working-with-ssh-key-passphrases/
+
+*Note: user/password authentication is not supported for any protocol.*
+
+### Revs
+
+The API functions all take revs, which can be any git rev that resolves to a commit, such as:
+
+* Full sha (40 chars)
+* Prefix sha (sufficiently unique in the repo)
+* Tag name
+* Branch name
+
+Procured working trees are always cached on the basis of the rev's full sha, so using `procure` 
+repeatedly on a rev that does not resolve to a fixed sha may result in new checkouts in the cache.
+
+### Cache directory
+
+Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
+
+## Example Usage
+
 ```clojure
 (require '[clojure.tools.gitlibs :as gl])
 
-;; Given a git repo url and a rev (partial sha, full sha, or tag name), resolve to a full sha.
+;; Given a git repo url and a rev, resolve to a full sha.
 (gl/resolve "https://github.com/clojure/spec.alpha.git" "739c1af")
 ;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 
@@ -27,30 +77,6 @@ keeps a cache of git dirs and working trees that can be reused.
 (gl/descendant "https://github.com/clojure/spec.alpha.git" ["607aef0" "739c1af"])
 ;; => "607aef0..."
 ```
-
-## Authentication
-
-The following git url types are supported:
-
-* `https` - for public anonymous clone and fetch of public repos
-* `ssh` - for authenticated clone and fetch of private repos
-* `http` and `git` protocols are plain-text and not supported or recommended
-
-ssh authentication works by connecting to the local ssh agent, which must have a registered identity. To check whether you have registered identities, use:
-
-`ssh-add -l`
-
-which should return one or more registered identities, usually one at ~/.ssh/id_rsa. If you don't see one but you have an ssh key, you can add it with:
-
-`ssh-add ~/.ssh/id_rsa`
-
-If your key has a passphrase, you will need to enter it at this time.
-
-User/password authentication is not supported for any protocol.
-
-## Cache directory
-
-Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
 
 ## Release Information
 
