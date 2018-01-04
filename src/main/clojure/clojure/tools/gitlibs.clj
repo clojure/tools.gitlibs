@@ -50,30 +50,23 @@
   [^RevWalk walk ^RevCommit x ^RevCommit y]
   (cond
     (= x y) 0
-    (.isMergedInto walk x y) -1
-    (.isMergedInto walk y x) 1
+    (.isMergedInto walk x y) 1
+    (.isMergedInto walk y x) -1
     :else (throw (ex-info "" {}))))
 
 (defn descendant
   "Returns rev in git url which is a descendant of all other revs,
   or nil if no such relationship can be established."
   [url revs]
-  (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
-    (try
-      (let [shas (map (partial resolve url) revs)]
-        (if (not-empty (filter nil? shas))
-          nil ;; can't resolve all shas in this repo
-          (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
-                ^RevCommit ret (first (sort (partial commit-comparator walk) commits))]
-            (.. ret getId name))))
-      (catch MissingObjectException e nil)
-      (catch clojure.lang.ExceptionInfo e nil)
-      (finally (.dispose walk)))))
-
-(comment
-  (resolve "https://github.com/clojure/spec.alpha.git" "739c1af5")
-  (procure "https://github.com/clojure/spec.alpha.git" 'org.clojure/spec.alpha "739c1af5")
-  (descendant "https://github.com/clojure/spec.alpha.git" ["607aef0" "739c1af"]) ;; "607aef0..."
-  (descendant "https://github.com/clojure/spec.alpha.git" ["739c1af" "607aef0"]) ;; "607aef0..."
-  (descendant "https://github.com/clojure/spec.alpha.git" ["1234567" "739c1af"]) ;; nil
-  )
+  (when (seq revs)
+    (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
+      (try
+        (let [shas (map (partial resolve url) revs)]
+          (if (not-empty (filter nil? shas))
+            nil ;; can't resolve all shas in this repo
+            (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
+                  ^RevCommit ret (first (sort (partial commit-comparator walk) commits))]
+              (.. ret getId name))))
+        (catch MissingObjectException e nil)
+        (catch clojure.lang.ExceptionInfo e nil)
+        (finally (.dispose walk))))))
