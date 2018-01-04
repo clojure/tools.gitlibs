@@ -18,7 +18,7 @@
   (:import
     [java.io File]
     [org.eclipse.jgit.lib ObjectId]
-    [org.eclipse.jgit.revwalk RevWalk]
+    [org.eclipse.jgit.revwalk RevWalk RevCommit]
     [org.eclipse.jgit.errors MissingObjectException]))
 
 (defn resolve
@@ -42,11 +42,12 @@
         full-sha (resolve url rev)
         rev-dir (jio/file impl/cache-dir "libs" (namespace lib) (name lib) full-sha)]
     (when (not (.exists rev-dir))
-      (impl/git-checkout (impl/git-fetch git-dir rev-dir) full-sha))
+      (impl/printerrln "Checking out:" url "at" rev)
+      (impl/git-checkout url rev-dir full-sha))
     (.getCanonicalPath rev-dir)))
 
 (defn- commit-comparator
-  [walk x y]
+  [^RevWalk walk ^RevCommit x ^RevCommit y]
   (cond
     (= x y) 0
     (.isMergedInto walk x y) -1
@@ -63,7 +64,7 @@
         (if (not-empty (filter nil? shas))
           nil ;; can't resolve all shas in this repo
           (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
-                ret (first (sort (partial commit-comparator walk) commits))]
+                ^RevCommit ret (first (sort (partial commit-comparator walk) commits))]
             (.. ret getId name))))
       (catch MissingObjectException e nil)
       (catch clojure.lang.ExceptionInfo e nil)

@@ -19,6 +19,10 @@
     [com.jcraft.jsch JSch]
     [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
 
+(defn printerrln [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
 (def ^:private ^TransportConfigCallback ssh-callback
   (delay
     (let [factory (doto (ConnectorFactory/getDefault) (.setPreferredUSocketFactories "jna,nc"))
@@ -34,7 +38,7 @@
                   (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
 
 (defn- call-with-auth
-  ([command]
+  ([^GitCommand command]
     (call-with-auth
       (.. command getRepository getConfig (getString "remote" "origin" "url"))
       command))
@@ -54,24 +58,21 @@
        (.setWorkTree (jio/file rev-dir))))))
 
 (defn git-fetch
-  ^Git [git-dir rev-dir]
-  (let [git (Git. (git-repo git-dir rev-dir))]
+  ^Git [git-dir]
+  (let [git (Git. (git-repo git-dir))]
     (call-with-auth (.. git fetch))
     git))
 
 ;; TODO: restrict clone to an optional refspec?
 (defn git-clone-bare
   [url git-dir]
+  (printerrln "Cloning:" url)
   (call-with-auth url
     (.. (Git/cloneRepository) (setURI url) (setGitDir (jio/file git-dir))
       (setBare true)
       (setNoCheckout true)
       (setCloneAllBranches true)))
   git-dir)
-
-(defn git-checkout
-  [^Git git ^String rev]
-  (call-with-auth (.. git checkout (setStartPoint rev) (setAllPaths true))))
 
 (def cache-dir
   (.getAbsolutePath (jio/file (System/getProperty "user.home") ".gitlibs")))
@@ -89,6 +90,14 @@
   "Ensure the bare git dir for the specified url."
   [url]
   (let [git-dir (jio/file cache-dir "_repos" (clean-url url))]
-    (when-not (.exists git-dir)
+    (if (.exists git-dir)
+      (git-fetch git-dir)
       (git-clone-bare url git-dir))
     (.getCanonicalPath git-dir)))
+
+(defn git-checkout
+  [url rev-dir ^String rev]
+  (let [git-dir (ensure-git-dir url)
+        git (Git. (git-repo git-dir rev-dir))]
+    (call-with-auth (.. git checkout (setStartPoint rev) (setAllPaths true)))))
+
