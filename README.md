@@ -79,10 +79,10 @@ Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory 
 
 ## Release Information
 
-Latest release: 0.2.40
+Latest release: 0.2.47
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates:  `org.clojure/tools.gitlibs {:mvn/version "0.2.40"}`
+* Coordinates:  `org.clojure/tools.gitlibs {:mvn/version "0.2.47"}`
 
 # Developer Information
 

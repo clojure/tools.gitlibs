@@ -1,8 +1,9 @@
 Changelog
 ===========
 
-* Next release
+* 0.2.47 on Jan 8, 2018 
   * Bump jgit to latest release
+  * In procure, use prefix to find working tree before needing to clone
 * 0.2.40 on Jan 4, 2018
   * Add tests
   * Fix descendant comparator order
