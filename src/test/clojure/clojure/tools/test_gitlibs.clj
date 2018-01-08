@@ -20,7 +20,7 @@
         "739c1af56dae621aedf1bb282025a0d676eff713")))
 
 (deftest test-procure
-  (let [wt (gl/procure repo-url 'org.clojure/spec.alpha "739c1af5")]
+  (let [wt (gl/procure repo-url 'org.clojure/spec.alpha "739c1af")]
     (is (= wt (.getAbsolutePath (jio/file glim/cache-dir "libs" "org.clojure" "spec.alpha" "739c1af56dae621aedf1bb282025a0d676eff713"))))
     (is (.exists (jio/file glim/cache-dir "_repos" "github.com" "clojure" "spec.alpha")))))
 

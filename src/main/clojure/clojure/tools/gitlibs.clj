@@ -16,7 +16,6 @@
     [clojure.java.io :as jio]
     [clojure.tools.gitlibs.impl :as impl])
   (:import
-    [java.io File]
     [org.eclipse.jgit.lib ObjectId]
     [org.eclipse.jgit.revwalk RevWalk RevCommit]
     [org.eclipse.jgit.errors MissingObjectException]))
@@ -36,23 +35,16 @@
 (defn procure
   "Procure a working tree at rev for the git url representing the library lib,
   returns the directory path. lib is a qualified symbol where the qualifier is a
-  controlled or conveyed identity."
+  controlled or conveyed identity, or nil if rev is unknown."
   [url lib rev]
-  (let [git-dir (jio/file (impl/ensure-git-dir url))
-        full-sha (resolve url rev)
-        rev-dir (jio/file impl/cache-dir "libs" (namespace lib) (name lib) full-sha)]
-    (when (not (.exists rev-dir))
-      (impl/printerrln "Checking out:" url "at" rev)
-      (impl/git-checkout url rev-dir full-sha))
-    (.getCanonicalPath rev-dir)))
-
-(defn- commit-comparator
-  [^RevWalk walk ^RevCommit x ^RevCommit y]
-  (cond
-    (= x y) 0
-    (.isMergedInto walk x y) 1
-    (.isMergedInto walk y x) -1
-    :else (throw (ex-info "" {}))))
+  (let [lib-dir (jio/file impl/cache-dir "libs" (namespace lib) (name lib))
+        sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
+    (when sha
+      (let [sha-dir (jio/file lib-dir sha)]
+        (when-not (.exists sha-dir)
+          (impl/printerrln "Checking out:" url "at" rev)
+          (impl/git-checkout url sha-dir sha))
+        (.getCanonicalPath sha-dir)))))
 
 (defn descendant
   "Returns rev in git url which is a descendant of all other revs,
@@ -65,7 +57,7 @@
           (if (not-empty (filter nil? shas))
             nil ;; can't resolve all shas in this repo
             (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
-                  ^RevCommit ret (first (sort (partial commit-comparator walk) commits))]
+                  ^RevCommit ret (first (sort (partial impl/commit-comparator walk) commits))]
               (.. ret getId name))))
         (catch MissingObjectException e nil)
         (catch clojure.lang.ExceptionInfo e nil)

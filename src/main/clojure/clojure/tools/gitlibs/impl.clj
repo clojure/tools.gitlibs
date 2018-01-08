@@ -12,9 +12,10 @@
     [clojure.java.io :as jio]
     [clojure.string :as str])
   (:import
-    [java.io File]
+    [java.io File FilenameFilter IOException]
     [org.eclipse.jgit.api Git GitCommand TransportCommand TransportConfigCallback]
     [org.eclipse.jgit.lib Repository RepositoryBuilder]
+    [org.eclipse.jgit.revwalk RevWalk RevCommit]
     [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
     [com.jcraft.jsch JSch]
     [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
@@ -101,3 +102,31 @@
         git (Git. (git-repo git-dir rev-dir))]
     (call-with-auth (.. git checkout (setStartPoint rev) (setAllPaths true)))))
 
+(defn commit-comparator
+  [^RevWalk walk ^RevCommit x ^RevCommit y]
+  (cond
+    (= x y) 0
+    (.isMergedInto walk x y) 1
+    (.isMergedInto walk y x) -1
+    :else (throw (ex-info "" {}))))
+
+(defn match-exact
+  "In dir, match file in dir with exact, nil if doesn't exist"
+  [^File dir exact]
+  (when (.exists (jio/file dir exact))
+    exact))
+
+(defn match-prefix
+  "In dir, match file in dir with prefix, nil if not found, exception if more than one."
+  [^File dir prefix]
+  (when (.exists dir)
+    (if (.exists (jio/file dir prefix))
+      prefix
+      (let [matches (.listFiles dir
+                      (reify FilenameFilter
+                        (accept [_this _dir name]
+                          (str/starts-with? name prefix))))]
+        (case (alength matches)
+          0 nil
+          1 (.getName ^File (aget matches 0))
+          (throw (IOException. (str "Prefix not unique: " prefix))))))))
