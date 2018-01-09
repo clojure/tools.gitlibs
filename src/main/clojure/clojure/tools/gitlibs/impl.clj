@@ -76,7 +76,10 @@
   git-dir)
 
 (def cache-dir
-  (.getAbsolutePath (jio/file (System/getProperty "user.home") ".gitlibs")))
+  (.getAbsolutePath
+   (if-let [env (System/getenv "GITLIBS")]
+     (jio/file env)
+     (jio/file (System/getProperty "user.home") ".gitlibs"))))
 
 (defn- clean-url
   "Chop leading protocol, trailing .git, replace :'s with /"
