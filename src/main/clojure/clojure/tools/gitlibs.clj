@@ -37,7 +37,7 @@
   returns the directory path. lib is a qualified symbol where the qualifier is a
   controlled or conveyed identity, or nil if rev is unknown."
   [url lib rev]
-  (let [lib-dir (jio/file impl/cache-dir "libs" (namespace lib) (name lib))
+  (let [lib-dir (jio/file (impl/cache-dir) "libs" (namespace lib) (name lib))
         sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
     (when sha
       (let [sha-dir (jio/file lib-dir sha)]

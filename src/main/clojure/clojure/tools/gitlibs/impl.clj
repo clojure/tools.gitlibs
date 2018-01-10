@@ -75,11 +75,18 @@
       (setCloneAllBranches true)))
   git-dir)
 
-(def cache-dir
-  (.getAbsolutePath
-   (if-let [env (System/getenv "GITLIBS")]
-     (jio/file env)
-     (jio/file (System/getProperty "user.home") ".gitlibs"))))
+(def ^:private CACHE
+  (delay
+    (.getCanonicalPath
+      (let [env (System/getenv "GITLIBS")]
+        (if (str/blank? env)
+          (jio/file (System/getProperty "user.home") ".gitlibs")
+          (jio/file env))))))
+
+(defn cache-dir
+  "Absolute path to the root of the cache"
+  []
+  @CACHE)
 
 (defn- clean-url
   "Chop leading protocol, trailing .git, replace :'s with /"
@@ -93,7 +100,7 @@
 (defn ensure-git-dir
   "Ensure the bare git dir for the specified url."
   [url]
-  (let [git-dir (jio/file cache-dir "_repos" (clean-url url))]
+  (let [git-dir (jio/file (cache-dir) "_repos" (clean-url url))]
     (if (.exists git-dir)
       (git-fetch git-dir)
       (git-clone-bare url git-dir))
