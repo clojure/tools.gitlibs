@@ -58,6 +58,8 @@ repeatedly on a rev that does not resolve to a fixed sha may result in new check
 
 Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
 
+The cache location can also be set with the environment variable GITLIBS.
+
 ## Example Usage
 
 ```clojure
