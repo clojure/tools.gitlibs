@@ -1,6 +1,10 @@
 Changelog
 ===========
 
+* 0.2.59 on Feb 9, 2018
+  * Add `cache-dir` API function
+* 0.2.54 on Jan 10, 2018
+  * Make gitlibs cache dir configurable via environment variable GITLIBS
 * 0.2.47 on Jan 8, 2018 
   * Bump jgit to latest release
   * In procure, use prefix to find working tree before needing to clone
