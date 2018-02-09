@@ -20,6 +20,12 @@
     [org.eclipse.jgit.revwalk RevWalk RevCommit]
     [org.eclipse.jgit.errors MissingObjectException]))
 
+(defn cache-dir
+  "Return the root gitlibs cache directory. By default ~/.gitlibs or
+  override by setting the environment variable GITLIBS."
+  []
+  (impl/cache-dir))
+
 (defn resolve
   "Takes a git url and a rev, and returns the full commit sha. rev may be a
   partial sha, full sha, or tag name."
