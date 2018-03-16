@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.2.64 on Mar 16, 2018
+  * TDEPS-53 If cached gitlib dir is corrupt, re-clone
 * 0.2.59 on Feb 9, 2018
   * Add `cache-dir` API function
 * 0.2.54 on Jan 10, 2018

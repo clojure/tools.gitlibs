@@ -81,10 +81,10 @@ The cache location can also be set with the environment variable GITLIBS.
 
 ## Release Information
 
-Latest release: 0.2.59
+Latest release: 0.2.64
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "0.2.59"}`
+* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "0.2.64"}`
 
 # Developer Information
 
