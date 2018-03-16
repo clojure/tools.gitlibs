@@ -102,7 +102,11 @@
   [url]
   (let [git-dir (jio/file (cache-dir) "_repos" (clean-url url))]
     (if (.exists git-dir)
-      (git-fetch git-dir)
+      (try
+        (git-fetch git-dir)
+        (catch Throwable _
+          ;; if can't fetch, local cache may be corrupt, try recloning
+          (git-clone-bare url git-dir)))
       (git-clone-bare url git-dir))
     (.getCanonicalPath git-dir)))
 
