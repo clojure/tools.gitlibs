@@ -76,7 +76,7 @@ The cache location can also be set with the environment variable GITLIBS.
 ;; Given git repo url, and a collection of revs, return the full sha of the one commit that is
 ;; a descendant of all other revs or nil if no such rev exists in the collection.
 (gl/descendant "https://github.com/clojure/spec.alpha.git" ["607aef0" "739c1af"])
-;; => "607aef0..."
+;; => "739c1af56dae621aedf1bb282025a0d676eff713"
 ```
 
 ## Release Information
