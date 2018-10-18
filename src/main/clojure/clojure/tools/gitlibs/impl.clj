@@ -44,10 +44,14 @@
       (.. command getRepository getConfig (getString "remote" "origin" "url"))
       command))
   ([^String url ^GitCommand command]
-   (if (and (instance? TransportCommand command)
-         (not (str/starts-with? url "http")))
+   (cond
+     (and (instance? TransportCommand command)
+          (str/starts-with? url "file"))
+     (.call command)
+     (and (instance? TransportCommand command)
+          (not (str/starts-with? url "http")))
      (.. ^TransportCommand command (setTransportConfigCallback @ssh-callback) call)
-     (.call command))))
+     :else (.call command))))
 
 (defn git-repo
   (^Repository [git-dir]
