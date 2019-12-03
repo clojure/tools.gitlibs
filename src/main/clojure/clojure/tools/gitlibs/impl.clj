@@ -6,7 +6,8 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.gitlibs.impl
+(ns ^{:skip-wiki true}
+  clojure.tools.gitlibs.impl
   "Implementation, use at your own risk"
   (:require
     [clojure.java.io :as jio]
