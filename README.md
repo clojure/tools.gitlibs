@@ -89,6 +89,7 @@ Latest release: 0.2.64
 # Developer Information
 
 * [GitHub project](https://github.com/clojure/tools.gitlibs)
+* [API Docs](https://clojure.github.io/tools.gitlibs)
 * [How to contribute](https://dev.clojure.org/display/community/Contributing)
 * [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
 * [Continuous Integration](https://build.clojure.org/job/gitlibs/)
