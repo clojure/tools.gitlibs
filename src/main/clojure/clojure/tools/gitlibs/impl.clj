@@ -71,6 +71,7 @@
   (printerrln "Cloning:" url)
   (call-with-auth url
     (.. (Git/cloneRepository) (setURI url) (setGitDir (jio/file git-dir))
+      (setCloneSubmodules true)
       (setBare true)
       (setNoCheckout true)
       (setCloneAllBranches true)))
