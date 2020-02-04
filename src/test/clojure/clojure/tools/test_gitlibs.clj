@@ -25,7 +25,7 @@
     (is (.exists (jio/file (glim/cache-dir) "_repos" "github.com" "clojure" "spec.alpha")))))
 
 (deftest test-procure-with-submodules
-  (let [repo-url "https://github.com/borkdude/babashka"
+  (let [repo-url "https://github.com/borkdude/babashka.git"
         rev "1224919bd19033386c732bdfd93f4b012e9da9c3"
         wt (gl/procure repo-url 'borkdude/babashka rev)]
     (is (= wt (.getAbsolutePath (jio/file (glim/cache-dir) "libs" "borkdude" "babashka" "1224919bd19033386c732bdfd93f4b012e9da9c3"))))
