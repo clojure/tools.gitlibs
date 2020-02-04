@@ -24,6 +24,13 @@
     (is (= wt (.getAbsolutePath (jio/file (glim/cache-dir) "libs" "org.clojure" "spec.alpha" "739c1af56dae621aedf1bb282025a0d676eff713"))))
     (is (.exists (jio/file (glim/cache-dir) "_repos" "github.com" "clojure" "spec.alpha")))))
 
+(deftest test-procure-with-submodules
+  (let [repo-url "https://github.com/borkdude/babashka"
+        rev "1224919bd19033386c732bdfd93f4b012e9da9c3"
+        wt (gl/procure repo-url 'borkdude/babashka rev)]
+    (is (= wt (.getAbsolutePath (jio/file (glim/cache-dir) "libs" "borkdude" "babashka" "1224919bd19033386c732bdfd93f4b012e9da9c3"))))
+    (is (.exists (jio/file (glim/cache-dir) "_repos" "github.com" "borkdude" "babashka")))))
+
 (deftest test-descendant-fixed
   (is (= (gl/descendant repo-url ["607aef0" "739c1af"])
         "739c1af56dae621aedf1bb282025a0d676eff713"))
