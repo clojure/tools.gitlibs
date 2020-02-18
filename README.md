@@ -81,10 +81,12 @@ The cache location can also be set with the environment variable GITLIBS.
 
 ## Release Information
 
-Latest release: 0.2.64
+This project follows the version scheme MAJOR.MINOR.COMMITS where MAJOR and MINOR provide some relative indication of the size of the change, but do not follow semantic versioning. In general, all changes endeavor to be non-breaking (by moving to new names rather than by breaking existing names). COMMITS is an ever-increasing counter of commits since the beginning of this repository.
+
+Latest release: 1.0.83
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "0.2.64"}`
+* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "1.0.83"}`
 
 # Developer Information
 
@@ -97,7 +99,7 @@ Latest release: 0.2.64
 
 # Copyright and License
 
-Copyright © 2018 Rich Hickey, Alex Miller, and contributors
+Copyright © 2018-2020 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the

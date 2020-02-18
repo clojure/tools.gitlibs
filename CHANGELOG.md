@@ -1,6 +1,7 @@
 Changelog
 ===========
 
+* 1.0.83 on Feb 18, 2020
 * 0.2.64 on Mar 16, 2018
   * TDEPS-53 If cached gitlib dir is corrupt, re-clone
 * 0.2.59 on Feb 9, 2018
