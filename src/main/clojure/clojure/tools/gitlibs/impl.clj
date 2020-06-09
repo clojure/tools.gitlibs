@@ -21,8 +21,6 @@
     [com.jcraft.jsch JSch]
     [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
 
-(set! *warn-on-reflection* true)
-
 (defn printerrln [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
