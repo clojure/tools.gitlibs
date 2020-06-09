@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 1.0.87 on June 9, 2020
+  * Fix reflection warning
 * 1.0.83 on Feb 18, 2020
 * 0.2.64 on Mar 16, 2018
   * TDEPS-53 If cached gitlib dir is corrupt, re-clone
