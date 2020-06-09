@@ -21,6 +21,8 @@
     [com.jcraft.jsch JSch]
     [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
 
+(set! *warn-on-reflection* true)
+
 (defn printerrln [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
@@ -36,8 +38,9 @@
             (proxy [JschConfigSessionFactory] []
               (configure [host session])
               (getJSch [hc fs]
-                (doto (proxy-super getJSch hc fs)
-                  (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
+                (let [^JSch jsch (proxy-super getJSch hc fs)]
+                  (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
+                  jsch)))))))))
 
 (defn- call-with-auth
   ([^GitCommand command]
