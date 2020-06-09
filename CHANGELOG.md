@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* 1.0.87 on June 9, 2020
+* 1.0.91 on June 9, 2020
   * Fix reflection warning
 * 1.0.83 on Feb 18, 2020
 * 0.2.64 on Mar 16, 2018
