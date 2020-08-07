@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 1.0.96 on Aug 7, 2020
+  * TDEPS-160 - Add missing compression lib for ssh compression
 * 1.0.91 on June 9, 2020
   * Fix reflection warning
 * 1.0.83 on Feb 18, 2020
