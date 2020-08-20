@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 1.0.100 on Aug 20, 2020
+  * Fetch all tags on procure
 * 1.0.96 on Aug 7, 2020
   * TDEPS-160 - Add missing compression lib for ssh compression
 * 1.0.91 on June 9, 2020
