@@ -17,7 +17,7 @@
     [org.eclipse.jgit.api Git GitCommand TransportCommand TransportConfigCallback]
     [org.eclipse.jgit.lib Repository RepositoryBuilder]
     [org.eclipse.jgit.revwalk RevWalk RevCommit]
-    [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
+    [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory TagOpt]
     [com.jcraft.jsch JSch]
     [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
 
@@ -63,7 +63,7 @@
 (defn git-fetch
   ^Git [git-dir]
   (let [git (Git. (git-repo git-dir))]
-    (call-with-auth (.. git fetch))
+    (call-with-auth (.. git fetch (setTagOpt TagOpt/FETCH_TAGS)))
     git))
 
 ;; TODO: restrict clone to an optional refspec?
