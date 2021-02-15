@@ -14,11 +14,7 @@
   (:refer-clojure :exclude [resolve])
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.gitlibs.impl :as impl])
-  (:import
-    [org.eclipse.jgit.lib ObjectId]
-    [org.eclipse.jgit.revwalk RevWalk RevCommit]
-    [org.eclipse.jgit.errors MissingObjectException]))
+    [clojure.tools.gitlibs.impl :as impl]))
 
 (defn cache-dir
   "Return the root gitlibs cache directory. By default ~/.gitlibs or
@@ -30,13 +26,7 @@
   "Takes a git url and a rev, and returns the full commit sha. rev may be a
   partial sha, full sha, or tag name."
   [url rev]
-  (let [git-dir (impl/ensure-git-dir url)]
-    (if (ObjectId/isId rev)
-      rev
-      (let [rev (.resolve (impl/git-repo git-dir) rev)]
-        (if rev
-          (.getName rev)
-          nil)))))
+  (impl/git-rev-parse (impl/ensure-git-dir url) rev))
 
 (defn procure
   "Procure a working tree at rev for the git url representing the library lib,
@@ -57,14 +47,8 @@
   or nil if no such relationship can be established."
   [url revs]
   (when (seq revs)
-    (let [walk (RevWalk. (-> url impl/ensure-git-dir impl/git-repo))]
-      (try
-        (let [shas (map (partial resolve url) revs)]
-          (if (not-empty (filter nil? shas))
-            nil ;; can't resolve all shas in this repo
-            (let [commits (map #(.lookupCommit walk (ObjectId/fromString ^String %)) shas)
-                  ^RevCommit ret (first (sort (partial impl/commit-comparator walk) commits))]
-              (.. ret getId name))))
-        (catch MissingObjectException e nil)
-        (catch clojure.lang.ExceptionInfo e nil)
-        (finally (.dispose walk))))))
+    (let [git-dir (impl/ensure-git-dir url)
+          shas (map (partial impl/git-rev-parse git-dir) revs)]
+      (if (not-empty (filter nil? shas))
+        nil ;; can't resolve all shas in this repo
+        (first (sort (partial impl/commit-comparator git-dir) shas))))))
