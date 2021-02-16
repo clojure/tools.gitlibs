@@ -37,7 +37,7 @@
 
 (defn git-fetch
   [^File git-dir]
-  (runproc "git" "--git-dir" (.getCanonicalPath git-dir) "fetch"))
+  (runproc "git" "--git-dir" (.getCanonicalPath git-dir) "fetch" "--tags"))
 
 ;; TODO: restrict clone to an optional refspec?
 (defn git-clone-bare
