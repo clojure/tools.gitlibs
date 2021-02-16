@@ -21,6 +21,7 @@
 (defn- runproc
   [& args]
   (let [proc (.start (ProcessBuilder. ^java.util.List args))
+        _ (.put (.environment proc) "GIT_TERMINAL_PROMPT" "0")
         code (.waitFor proc)
         out (slurp (.getInputStream proc))
         err (slurp (.getErrorStream proc))]
