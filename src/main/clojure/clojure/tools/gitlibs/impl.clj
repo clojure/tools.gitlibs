@@ -19,33 +19,37 @@
     (apply println msgs)))
 
 (defn- runproc
-  [& args]
-  (let [proc (.start (ProcessBuilder. ^java.util.List args))
-        _ (.put (.environment proc) "GIT_TERMINAL_PROMPT" "0")
-        code (.waitFor proc)
+  [{:keys [interactive print-commands]} & args]
+  (when print-commands
+    (apply printerrln args))
+  (let [proc-builder (ProcessBuilder. ^java.util.List args)
+        _ (when-not interactive (.put (.environment proc-builder) "GIT_TERMINAL_PROMPT" "0"))
+        proc (.start proc-builder)
+        exit (.waitFor proc)
         out (slurp (.getInputStream proc))
         err (slurp (.getErrorStream proc))]
-    (when-not (zero? code)
-      (apply printerrln args)
-      (printerrln err))
-    {:exit code
-     :out out
-     :err err}))
+    {:exit exit :out out :err err}))
 
 ;; git clone --bare --quiet URL PATH
 ;; git --git-dir <> fetch
 ;; git --git-dir <> --work-tree <dst> checkout <rev>
 
 (defn git-fetch
-  [^File git-dir]
-  (runproc "git" "--git-dir" (.getCanonicalPath git-dir) "fetch" "--tags"))
+  [^File git-dir opts]
+  (let [git-path (.getCanonicalPath git-dir)
+        {:keys [exit err] :as ret} (runproc opts "git" "--git-dir" git-path "fetch" "--tags")]
+    (when-not (zero? exit)
+      (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
 ;; TODO: restrict clone to an optional refspec?
 (defn git-clone-bare
-  [url ^File git-dir]
+  [url ^File git-dir opts]
   (printerrln "Cloning:" url)
-  (runproc "git" "clone" "--bare" url (.getCanonicalPath git-dir))
-  git-dir)
+  (let [git-path (.getCanonicalPath git-dir)
+        {:keys [exit err] :as ret} (runproc opts "git" "clone" "--bare" url git-path)]
+    (when-not (zero? exit)
+      (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
+    git-dir))
 
 (def ^:private CACHE
   (delay
@@ -71,47 +75,45 @@
 
 (defn ensure-git-dir
   "Ensure the bare git dir for the specified url."
-  [url]
+  [url opts]
   (let [git-dir (jio/file (cache-dir) "_repos" (clean-url url))]
     (if (.exists git-dir)
-      (git-fetch git-dir)
-      (git-clone-bare url git-dir))
+      (git-fetch git-dir opts)
+      (git-clone-bare url git-dir opts))
     (.getCanonicalPath git-dir)))
 
 (defn git-checkout
-  [url ^File rev-dir ^String rev]
+  [url ^File rev-dir ^String rev opts]
   (when-not (.exists rev-dir)
     (.mkdirs rev-dir))
-  (runproc "git"
-           "--git-dir" (ensure-git-dir url)
-           "--work-tree" (.getCanonicalPath rev-dir)
-           "checkout" rev))
+  (runproc opts
+    "git"
+    "--git-dir" (ensure-git-dir url opts)
+    "--work-tree" (.getCanonicalPath rev-dir)
+    "checkout" rev))
 
 (defn git-rev-parse
-  [git-dir rev]
-  (let [p (runproc "git" "--git-dir" git-dir "rev-parse" rev)]
-    (when (zero? (:exit p))
-      (str/trimr (:out p)))))
+  [git-dir rev opts]
+  (let [{:keys [exit out]} (runproc opts "git" "--git-dir" git-dir "rev-parse" rev)]
+    (when (zero? exit)
+      (str/trimr out))))
 
 ;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit> 
 (defn- ancestor?
-  [git-dir x y]
-  (let [args  ["git" "--git-dir" git-dir "merge-base" "--is-ancestor" x y]
-        proc (.start (ProcessBuilder. ^java.util.List args))
-        code (.waitFor proc)]
-    (when-not (#{0 1} code)
-      (throw (ex-info "" {})))
-    (condp = code
+  [git-dir x y opts]
+  (let [args ["git" "--git-dir" git-dir "merge-base" "--is-ancestor" x y]
+        {:keys [exit err] :as ret} (apply runproc opts args)]
+    (condp = exit
       0 true
       1 false
-      (throw (Exception. "")))))
+      (throw (ex-info (format "Unable to compare commits %s%n%s" (.getCanonicalPath git-dir) err) ret)))))
 
 (defn commit-comparator
-  [git-dir x y]
+  [git-dir opts x y]
   (cond
     (= x y) 0
-    (ancestor? git-dir x y) 1
-    (ancestor? git-dir y x) -1
+    (ancestor? git-dir x y opts) 1
+    (ancestor? git-dir y x opts) -1
     :else (throw (ex-info "" {}))))
 
 (defn match-exact

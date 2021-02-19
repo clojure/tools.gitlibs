@@ -24,31 +24,59 @@
 
 (defn resolve
   "Takes a git url and a rev, and returns the full commit sha. rev may be a
-  partial sha, full sha, or tag name."
-  [url rev]
-  (impl/git-rev-parse (impl/ensure-git-dir url) rev))
+  partial sha, full sha, or tag name.
+
+  Optional opts map may include:
+    :interactive (default false) - set true to allow stdin prompts (example: unknown host)
+    :print-commands (default false) - set true to write git executions to stderr"
+  ([url rev]
+   (resolve url rev nil))
+  ([url rev opts]
+   (impl/git-rev-parse (impl/ensure-git-dir url opts) rev opts)))
 
 (defn procure
   "Procure a working tree at rev for the git url representing the library lib,
   returns the directory path. lib is a qualified symbol where the qualifier is a
-  controlled or conveyed identity, or nil if rev is unknown."
-  [url lib rev]
-  (let [lib-dir (jio/file (impl/cache-dir) "libs" (namespace lib) (name lib))
-        sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
-    (when sha
-      (let [sha-dir (jio/file lib-dir sha)]
-        (when-not (.exists sha-dir)
-          (impl/printerrln "Checking out:" url "at" rev)
-          (impl/git-checkout url sha-dir sha))
-        (.getCanonicalPath sha-dir)))))
+  controlled or conveyed identity, or nil if rev is unknown.
+
+  Optional opts map may include:
+    :interactive (default false) - set true to allow stdin prompts (example: unknown host)
+    :print-commands (default false) - set true to write git commands to stderr"
+  ([url lib rev]
+   (procure url lib rev nil))
+  ([url lib rev opts]
+   (let [lib-dir (jio/file (impl/cache-dir) "libs" (namespace lib) (name lib))
+         sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
+     (when sha
+       (let [sha-dir (jio/file lib-dir sha)]
+         (when-not (.exists sha-dir)
+           (impl/printerrln "Checking out:" url "at" rev)
+           (impl/git-checkout url sha-dir sha opts))
+         (.getCanonicalPath sha-dir))))))
 
 (defn descendant
   "Returns rev in git url which is a descendant of all other revs,
-  or nil if no such relationship can be established."
-  [url revs]
-  (when (seq revs)
-    (let [git-dir (impl/ensure-git-dir url)
-          shas (map (partial impl/git-rev-parse git-dir) revs)]
-      (if (not-empty (filter nil? shas))
-        nil ;; can't resolve all shas in this repo
-        (first (sort (partial impl/commit-comparator git-dir) shas))))))
+  or nil if no such relationship can be established.
+
+  Optional opts map may include:
+    :interactive (default false) - set true to allow stdin prompts (example: unknown host)
+    :print-commands (default false) - set true to write git commands to stderr"
+  ([url rev]
+   (descendant url rev nil))
+  ([url revs opts]
+   (when (seq revs)
+     (let [git-dir (impl/ensure-git-dir url opts)
+           shas (map #(impl/git-rev-parse git-dir % opts) revs)]
+       (if (not-empty (filter nil? shas))
+         nil ;; can't resolve all shas in this repo
+         (first (sort (partial impl/commit-comparator git-dir opts) shas)))))))
+
+(comment
+  (resolve "git@github.com:clojure/tools.gitlibs.git" "11fc774" {:print-commands true :interactive true})
+  (descendant "https://github.com/clojure/tools.gitlibs.git" ["5e2797a487c" "11fc774" "d82adc29" "815e312310"] {:print-commands true})
+
+  (println
+    @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061"))
+    @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061")))
+
+  )
