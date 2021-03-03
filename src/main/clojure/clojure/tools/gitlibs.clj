@@ -45,7 +45,7 @@
   ([url lib rev]
    (procure url lib rev nil))
   ([url lib rev opts]
-   (let [lib-dir (jio/file (impl/cache-dir) "libs" (namespace lib) (name lib))
+   (let [lib-dir (impl/lib-dir lib)
          sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
      (when sha
        (let [sha-dir (jio/file lib-dir sha)]

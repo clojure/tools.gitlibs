@@ -14,6 +14,8 @@
   (:import
     [java.io File FilenameFilter IOException]))
 
+;; io util
+
 (defn printerrln [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
@@ -29,6 +31,38 @@
         out (slurp (.getInputStream proc))
         err (slurp (.getErrorStream proc))]
     {:exit exit :out out :err err}))
+
+;; dirs
+
+(def ^:private CACHE
+  (delay
+    (.getCanonicalPath
+      (let [env (System/getenv "GITLIBS")]
+        (if (str/blank? env)
+          (jio/file (System/getProperty "user.home") ".gitlibs")
+          (jio/file env))))))
+
+(defn cache-dir
+  "Absolute path to the root of the cache"
+  []
+  @CACHE)
+
+(defn lib-dir
+  ^File [lib]
+  (jio/file (cache-dir) "libs" (namespace lib) (name lib)))
+
+(defn- clean-url
+  "Chop leading protocol, trailing .git, replace :'s with /"
+  [url]
+  (-> url
+    (str/split #"://")
+    last
+    (str/replace #"\.git$" "")
+    (str/replace #":" "/")))
+
+(defn git-dir
+  ^File [url]
+  (jio/file (cache-dir) "_repos" (clean-url url)))
 
 ;; git clone --bare --quiet URL PATH
 ;; git --git-dir <> fetch
@@ -51,36 +85,14 @@
       (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
     git-dir))
 
-(def ^:private CACHE
-  (delay
-    (.getCanonicalPath
-      (let [env (System/getenv "GITLIBS")]
-        (if (str/blank? env)
-          (jio/file (System/getProperty "user.home") ".gitlibs")
-          (jio/file env))))))
-
-(defn cache-dir
-  "Absolute path to the root of the cache"
-  []
-  @CACHE)
-
-(defn- clean-url
-  "Chop leading protocol, trailing .git, replace :'s with /"
-  [url]
-  (-> url
-    (str/split #"://")
-    last
-    (str/replace #"\.git$" "")
-    (str/replace #":" "/")))
-
 (defn ensure-git-dir
-  "Ensure the bare git dir for the specified url."
+  "Ensure the bare git dir for the specified url, return the path to the git dir."
   [url opts]
-  (let [git-dir (jio/file (cache-dir) "_repos" (clean-url url))]
-    (if (.exists git-dir)
-      (git-fetch git-dir opts)
-      (git-clone-bare url git-dir opts))
-    (.getCanonicalPath git-dir)))
+  (let [git-dir-file (git-dir url)]
+    (if (.exists git-dir-file)
+      (git-fetch git-dir-file opts)
+      (git-clone-bare url git-dir-file opts))
+    (.getCanonicalPath git-dir-file)))
 
 (defn git-checkout
   [url ^File rev-dir ^String rev opts]
