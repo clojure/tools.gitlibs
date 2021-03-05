@@ -71,6 +71,13 @@
          nil ;; can't resolve all shas in this repo
          (first (sort (partial impl/commit-comparator git-dir opts) shas)))))))
 
+(defn tags
+  "Returns coll of tags in git url"
+  ([url]
+   (tags url nil))
+  ([url opts]
+   (impl/tags (impl/ensure-git-dir url opts) opts)))
+
 (comment
   (resolve "git@github.com:clojure/tools.gitlibs.git" "11fc774" {:print-commands true :interactive true})
   (descendant "https://github.com/clojure/tools.gitlibs.git" ["5e2797a487c" "11fc774" "d82adc29" "815e312310"] {:print-commands true})
@@ -79,4 +86,5 @@
     @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061"))
     @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061")))
 
+  (tags "https://github.com/clojure/tools.gitlibs.git" {:print-commands true})
   )
