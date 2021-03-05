@@ -14,6 +14,8 @@
   (:import
     [java.io File FilenameFilter IOException]))
 
+(set! *warn-on-reflection* true)
+
 ;; io util
 
 (defn printerrln [& msgs]
@@ -118,7 +120,7 @@
     (condp = exit
       0 true
       1 false
-      (throw (ex-info (format "Unable to compare commits %s%n%s" (.getCanonicalPath git-dir) err) ret)))))
+      (throw (ex-info (format "Unable to compare commits %s%n%s" git-dir err) ret)))))
 
 (defn commit-comparator
   [git-dir opts x y]

@@ -16,6 +16,8 @@
     [clojure.java.io :as jio]
     [clojure.tools.gitlibs.impl :as impl]))
 
+(set! *warn-on-reflection* true)
+
 (defn cache-dir
   "Return the root gitlibs cache directory. By default ~/.gitlibs or
   override by setting the environment variable GITLIBS."
