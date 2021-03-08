@@ -24,9 +24,31 @@
   []
   (impl/cache-dir))
 
+;; Possible new API, internal for now
+(defn- resolve-all
+  "Takes a git url and a coll of revs, and returns the full commit shas.
+  Each rev may be a partial sha, full sha, or tag name. Returns nil for
+  unresolveable revs.
+
+  Optional opts map may include:
+    :interactive (default false) - set true to allow stdin prompts (example: unknown host)
+    :print-commands (default false) - set true to write git executions to stderr"
+  ([url revs]
+   (resolve-all url revs nil))
+  ([url revs opts]
+   (let [git-dir (impl/ensure-git-dir url opts)]
+     (reduce
+       (fn [rs r]
+         (if-let [res (impl/git-rev-parse git-dir r opts)]
+           (conj rs res)
+           (do ;; could not resolve - fetch and try again
+             (impl/git-fetch (jio/file git-dir) opts)
+             (conj rs (impl/git-rev-parse git-dir r opts)))))
+       [] revs))))
+
 (defn resolve
-  "Takes a git url and a rev, and returns the full commit sha. rev may be a
-  partial sha, full sha, or tag name.
+  "Takes a git url and a rev, and returns the full commit sha or nil if can't
+  resolve. rev may be a partial sha, full sha, or tag name.
 
   Optional opts map may include:
     :interactive (default false) - set true to allow stdin prompts (example: unknown host)
@@ -34,7 +56,7 @@
   ([url rev]
    (resolve url rev nil))
   ([url rev opts]
-   (impl/git-rev-parse (impl/ensure-git-dir url opts) rev opts)))
+   (first (resolve-all url [rev] opts))))
 
 (defn procure
   "Procure a working tree at rev for the git url representing the library lib,
@@ -67,11 +89,11 @@
    (descendant url rev nil))
   ([url revs opts]
    (when (seq revs)
-     (let [git-dir (impl/ensure-git-dir url opts)
-           shas (map #(impl/git-rev-parse git-dir % opts) revs)]
-       (if (not-empty (filter nil? shas))
+     (let [shas (resolve-all url revs opts)]
+       (if (seq (filter nil? shas))
          nil ;; can't resolve all shas in this repo
-         (first (sort (partial impl/commit-comparator git-dir opts) shas)))))))
+         (let [git-dir (impl/ensure-git-dir url opts)]
+           (->> shas (sort (partial impl/commit-comparator git-dir opts)) first)))))))
 
 (comment
   (resolve "git@github.com:clojure/tools.gitlibs.git" "11fc774" {:print-commands true :interactive true})
