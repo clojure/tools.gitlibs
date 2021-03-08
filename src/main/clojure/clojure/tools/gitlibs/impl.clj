@@ -90,9 +90,9 @@
 (defn ensure-git-dir
   "Ensure the bare git dir for the specified url, return the path to the git dir."
   [url opts]
-  (let [git-dir-file (git-dir url)]
-    (if (.exists git-dir-file)
-      (git-fetch git-dir-file opts)
+  (let [git-dir-file (git-dir url)
+        config-file (jio/file git-dir-file "config")]
+    (when-not (.exists config-file)
       (git-clone-bare url git-dir-file opts))
     (.getCanonicalPath git-dir-file)))
 
