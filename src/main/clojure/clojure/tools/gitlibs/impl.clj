@@ -36,20 +36,41 @@
         err (slurp (.getErrorStream proc))]
     {:exit exit :out out :err err}))
 
+;; config
+
+(defn- read-config
+  "Read a config value from each of these in order, taking the first value found:
+   * Java system property
+   * env variable
+   * default value"
+  [property env default]
+  (or
+    (System/getProperty property)
+    (System/getenv env)
+    default))
+
 ;; dirs
 
 (def ^:private CACHE
   (delay
     (.getCanonicalPath
-      (let [env (System/getenv "GITLIBS")]
-        (if (str/blank? env)
+      (let [lib-dir (read-config "clojure.gitlibs.dir" "GITLIBS" nil)]
+        (if (str/blank? lib-dir)
           (jio/file (System/getProperty "user.home") ".gitlibs")
-          (jio/file env))))))
+          (jio/file lib-dir))))))
 
 (defn cache-dir
   "Absolute path to the root of the cache"
   []
   @CACHE)
+
+(def ^:private COMMAND_CACHE
+  (delay (read-config "clojure.gitlibs.command" "GITLIBS_CMD" "git")))
+
+(defn git-command
+  "Path to git command to run"
+  []
+  @COMMAND_CACHE)
 
 (defn lib-dir
   ^File [lib]
@@ -75,7 +96,7 @@
 (defn git-fetch
   [^File git-dir opts]
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts "git" "--git-dir" git-path "fetch" "--tags")]
+        {:keys [exit err] :as ret} (runproc opts (git-command) "--git-dir" git-path "fetch" "--tags")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
@@ -84,7 +105,7 @@
   [url ^File git-dir opts]
   (printerrln "Cloning:" url)
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts "git" "clone" "--bare" url git-path)]
+        {:keys [exit err] :as ret} (runproc opts (git-command) "clone" "--bare" url git-path)]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
     git-dir))
@@ -99,7 +120,7 @@
     (.getCanonicalPath git-dir-file)))
 
 (defonce ^:private no-file-attrs
-  (time (into-array FileAttribute [])))
+  (into-array FileAttribute []))
 
 (defonce ^:private no-copy-opts
   (into-array CopyOption []))
@@ -139,21 +160,21 @@
     (when-not (.exists rev-file)
       (write-with-temp lib-dir rev
         #(runproc opts
-           "git"
+           (git-command)
            "--git-dir" git-dir-path
            "--work-tree" %
            "checkout" rev)))))
 
 (defn git-rev-parse
   [git-dir rev opts]
-  (let [{:keys [exit out]} (runproc opts "git" "--git-dir" git-dir "rev-parse" rev)]
+  (let [{:keys [exit out]} (runproc opts (git-command) "--git-dir" git-dir "rev-parse" rev)]
     (when (zero? exit)
       (str/trimr out))))
 
 ;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit> 
 (defn- ancestor?
   [git-dir x y opts]
-  (let [args ["git" "--git-dir" git-dir "merge-base" "--is-ancestor" x y]
+  (let [args [(git-command) "--git-dir" git-dir "merge-base" "--is-ancestor" x y]
         {:keys [exit err] :as ret} (apply runproc opts args)]
     (condp = exit
       0 true
