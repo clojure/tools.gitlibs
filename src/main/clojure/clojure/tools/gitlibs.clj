@@ -70,12 +70,13 @@
    (procure url lib rev nil))
   ([url lib rev opts]
    (let [lib-dir (impl/lib-dir lib)
+         git-dir-path (impl/ensure-git-dir url opts)
          sha (or (impl/match-exact lib-dir rev) (impl/match-prefix lib-dir rev) (resolve url rev))]
      (when sha
        (let [sha-dir (jio/file lib-dir sha)]
          (when-not (.exists sha-dir)
            (impl/printerrln "Checking out:" url "at" rev)
-           (impl/git-checkout url sha-dir sha opts))
+           (impl/git-checkout git-dir-path lib-dir sha opts))
          (.getCanonicalPath sha-dir))))))
 
 (defn descendant

@@ -12,7 +12,9 @@
     [clojure.java.io :as jio]
     [clojure.string :as str])
   (:import
-    [java.io File FilenameFilter IOException]))
+    [java.io File FilenameFilter IOException]
+    [java.nio.file Files CopyOption StandardCopyOption AtomicMoveNotSupportedException]
+    [java.nio.file.attribute FileAttribute]))
 
 (set! *warn-on-reflection* true)
 
@@ -96,15 +98,51 @@
       (git-clone-bare url git-dir-file opts))
     (.getCanonicalPath git-dir-file)))
 
+(defonce ^:private no-file-attrs
+  (time (into-array FileAttribute [])))
+
+(defonce ^:private no-copy-opts
+  (into-array CopyOption []))
+
+(defonce ^:private atomic-move-opts
+  (into-array CopyOption [StandardCopyOption/ATOMIC_MOVE]))
+
+(defn- delete-recursive
+  [^File file]
+  (when (.isDirectory file)
+    (run! delete-recursive (.listFiles file)))
+  (.delete file))
+
+(defn- write-with-temp
+  [^File parent-dir target write-fn]
+  (let [target-dir (jio/file parent-dir target)]
+    (when-not (.exists target-dir)
+      (when-not (.exists parent-dir)
+        (.mkdirs parent-dir))
+      (let [parent-path (.toPath parent-dir)
+            temp-path (Files/createTempDirectory parent-path (str target "-") no-file-attrs)]
+        (write-fn (.toString temp-path))
+        (let [target-path (.toPath target-dir)]
+          (try
+            (try
+              (Files/move temp-path target-path atomic-move-opts)
+              (catch AtomicMoveNotSupportedException _
+                (Files/move temp-path target-path no-copy-opts)))
+            (catch IOException _
+              (try
+                (delete-recursive (.toFile temp-path))
+                (catch Throwable t)))))))))
+
 (defn git-checkout
-  [url ^File rev-dir ^String rev opts]
-  (when-not (.exists rev-dir)
-    (.mkdirs rev-dir))
-  (runproc opts
-    "git"
-    "--git-dir" (ensure-git-dir url opts)
-    "--work-tree" (.getCanonicalPath rev-dir)
-    "checkout" rev))
+  [git-dir-path ^File lib-dir ^String rev opts]
+  (let [rev-file (jio/file lib-dir rev)]
+    (when-not (.exists rev-file)
+      (write-with-temp lib-dir rev
+        #(runproc opts
+           "git"
+           "--git-dir" git-dir-path
+           "--work-tree" %
+           "checkout" rev)))))
 
 (defn git-rev-parse
   [git-dir rev opts]
