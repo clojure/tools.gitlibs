@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 2.1.129 on Mar 10, 2021
   * Change git options during checkout to work with more git versions
   * Check exit code on checkout and throw if failed
   * Overhaul config and debug settings
