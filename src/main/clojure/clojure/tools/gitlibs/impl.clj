@@ -122,7 +122,7 @@
     (when-not (.exists rev-file)
       (runproc opts (git-command)
         "--git-dir" git-dir-path
-        "worktree" "add" "--force" "--detach" "--quiet"
+        "worktree" "add" "--force" "--detach"
         (.getCanonicalPath rev-file) rev))))
 
 (defn git-rev-parse
