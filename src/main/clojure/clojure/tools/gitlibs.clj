@@ -54,7 +54,7 @@
     :interactive (default false) - set true to allow stdin prompts (example: unknown host)
     :print-commands (default false) - set true to write git executions to stderr"
   ([url rev]
-   (resolve url rev nil))
+   (resolve url rev {:print-commands true}))
   ([url rev opts]
    (first (resolve-all url [rev] opts))))
 
@@ -67,7 +67,7 @@
     :interactive (default false) - set true to allow stdin prompts (example: unknown host)
     :print-commands (default false) - set true to write git commands to stderr"
   ([url lib rev]
-   (procure url lib rev nil))
+   (procure url lib rev {:print-commands true}))
   ([url lib rev opts]
    (let [lib-dir (impl/lib-dir lib)
          git-dir-path (impl/ensure-git-dir url opts)

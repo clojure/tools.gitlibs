@@ -32,6 +32,8 @@
         exit (.waitFor proc)
         out (slurp (.getInputStream proc))
         err (slurp (.getErrorStream proc))]
+    (println out)
+    (println err)
     {:exit exit :out out :err err}))
 
 ;; config
