@@ -1,6 +1,13 @@
 Changelog
 ===========
 
+* next
+  * Fix issues with checkouts of multiple commits per repo
+  * resolve now only fetches if it can't resolve a ref
+  * Config read from most to least preferred: Java system property / env var / default:
+    * gitlibs dir: clojure.gitlibs.dir / GITLIBS / nil
+    * git command: clojure.gitlibs.command / GITLIBS_COMMAND / "git"
+  * Fix reflection error
 * 1.0.100 on Aug 20, 2020
   * Fetch all tags on procure
 * 1.0.96 on Aug 7, 2020
