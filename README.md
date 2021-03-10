@@ -27,7 +27,7 @@ The following git url types are supported:
 
 ### SSH authentication for private repositories
 
-ssh authentication works by connecting to the local ssh agent (ssh-agent on *nix or Pageant via PuTTY on Windows).
+ssh authentication works by connecting to the local ssh agent (ssh-agent on \*nix or Pageant via PuTTY on Windows).
 The ssh-agent must have a registered identity for the key being used to access the Git repository.
 To check whether you have registered identities, use:
 
@@ -83,10 +83,10 @@ The cache location can also be set with the environment variable GITLIBS.
 
 This project follows the version scheme MAJOR.MINOR.COMMITS where MAJOR and MINOR provide some relative indication of the size of the change, but do not follow semantic versioning. In general, all changes endeavor to be non-breaking (by moving to new names rather than by breaking existing names). COMMITS is an ever-increasing counter of commits since the beginning of this repository.
 
-Latest release: 1.0.100
+Latest release: 2.0.119
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "1.0.100"}`
+* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "2.0.119"}`
 
 # Developer Information
 
@@ -99,7 +99,7 @@ Latest release: 1.0.100
 
 # Copyright and License
 
-Copyright © 2018-2020 Rich Hickey, Alex Miller, and contributors
+Copyright © 2018-2021 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the

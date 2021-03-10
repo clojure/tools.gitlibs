@@ -111,5 +111,10 @@
     @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061"))
     @(future (procure "https://github.com/clojure/tools.gitlibs.git" 'org.clojure/tools.gitlibs "11fc77496f013871c8af3514bbba03de0af28061")))
 
+  (println
+    @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "b6b3193fcc42659d7e46ecd1884a228993441182"))
+    @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"))
+    @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "9e1098965f2089c8cf492d23c0b7520f8690440a")))
+
   (tags "https://github.com/clojure/tools.gitlibs.git" {:print-commands true})
   )

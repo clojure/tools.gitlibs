@@ -12,9 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.string :as str])
   (:import
-    [java.io File FilenameFilter IOException]
-    [java.nio.file Files CopyOption StandardCopyOption AtomicMoveNotSupportedException]
-    [java.nio.file.attribute FileAttribute]))
+    [java.io File FilenameFilter IOException]))
 
 (set! *warn-on-reflection* true)
 
@@ -65,7 +63,7 @@
   @CACHE)
 
 (def ^:private COMMAND_CACHE
-  (delay (read-config "clojure.gitlibs.command" "GITLIBS_CMD" "git")))
+  (delay (read-config "clojure.gitlibs.command" "GITLIBS_COMMAND" "git")))
 
 (defn git-command
   "Path to git command to run"
@@ -89,14 +87,12 @@
   ^File [url]
   (jio/file (cache-dir) "_repos" (clean-url url)))
 
-;; git clone --bare --quiet URL PATH
-;; git --git-dir <> fetch
-;; git --git-dir <> --work-tree <dst> checkout <rev>
-
 (defn git-fetch
   [^File git-dir opts]
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts (git-command) "--git-dir" git-path "fetch" "--tags")]
+        {:keys [exit err] :as ret} (runproc opts (git-command)
+                                     "--git-dir" git-path
+                                     "fetch" "--quiet" "--tags")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
@@ -105,7 +101,8 @@
   [url ^File git-dir opts]
   (printerrln "Cloning:" url)
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts (git-command) "clone" "--bare" url git-path)]
+        {:keys [exit err] :as ret} (runproc opts (git-command)
+                                     "clone" "--quiet" "--bare" url git-path)]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
     git-dir))
@@ -119,55 +116,20 @@
       (git-clone-bare url git-dir-file opts))
     (.getCanonicalPath git-dir-file)))
 
-(defonce ^:private no-file-attrs
-  (into-array FileAttribute []))
-
-(defonce ^:private no-copy-opts
-  (into-array CopyOption []))
-
-(defonce ^:private atomic-move-opts
-  (into-array CopyOption [StandardCopyOption/ATOMIC_MOVE]))
-
-(defn- delete-recursive
-  [^File file]
-  (when (.isDirectory file)
-    (run! delete-recursive (.listFiles file)))
-  (.delete file))
-
-(defn- write-with-temp
-  [^File parent-dir target write-fn]
-  (let [target-dir (jio/file parent-dir target)]
-    (when-not (.exists target-dir)
-      (when-not (.exists parent-dir)
-        (.mkdirs parent-dir))
-      (let [parent-path (.toPath parent-dir)
-            temp-path (Files/createTempDirectory parent-path (str target "-") no-file-attrs)]
-        (write-fn (.toString temp-path))
-        (let [target-path (.toPath target-dir)]
-          (try
-            (try
-              (Files/move temp-path target-path atomic-move-opts)
-              (catch AtomicMoveNotSupportedException _
-                (Files/move temp-path target-path no-copy-opts)))
-            (catch IOException _
-              (try
-                (delete-recursive (.toFile temp-path))
-                (catch Throwable t)))))))))
-
 (defn git-checkout
   [git-dir-path ^File lib-dir ^String rev opts]
   (let [rev-file (jio/file lib-dir rev)]
     (when-not (.exists rev-file)
-      (write-with-temp lib-dir rev
-        #(runproc opts
-           (git-command)
-           "--git-dir" git-dir-path
-           "--work-tree" %
-           "checkout" rev)))))
+      (runproc opts (git-command)
+        "--git-dir" git-dir-path
+        "worktree" "add" "--force" "--detach" "--quiet"
+        (.getCanonicalPath rev-file) rev))))
 
 (defn git-rev-parse
   [git-dir rev opts]
-  (let [{:keys [exit out]} (runproc opts (git-command) "--git-dir" git-dir "rev-parse" rev)]
+  (let [{:keys [exit out]} (runproc opts (git-command)
+                             "--git-dir" git-dir
+                             "rev-parse" rev)]
     (when (zero? exit)
       (str/trimr out))))
 
