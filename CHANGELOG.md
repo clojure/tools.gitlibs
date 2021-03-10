@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Change git options during checkout to work with more git versions
 * 2.0.119 on Mar 10, 2021
   * Fix issues with checkouts of multiple commits per repo
   * resolve now only fetches if it can't resolve a ref
