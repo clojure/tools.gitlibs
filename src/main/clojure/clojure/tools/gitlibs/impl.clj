@@ -10,8 +10,10 @@
   "Implementation, use at your own risk"
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [clojure.tools.gitlibs.config :as config])
   (:import
+    [java.lang ProcessBuilder$Redirect]
     [java.io File FilenameFilter IOException]))
 
 (set! *warn-on-reflection* true)
@@ -22,57 +24,26 @@
   (binding [*out* *err*]
     (apply println msgs)))
 
-(defn- runproc
-  [{:keys [interactive print-commands]} & args]
-  (when print-commands
-    (apply printerrln args))
-  (let [proc-builder (ProcessBuilder. ^java.util.List args)
-        _ (when-not interactive (.put (.environment proc-builder) "GIT_TERMINAL_PROMPT" "0"))
-        proc (.start proc-builder)
-        exit (.waitFor proc)
-        out (slurp (.getInputStream proc))
-        err (slurp (.getErrorStream proc))]
-    {:exit exit :out out :err err}))
-
-;; config
-
-(defn- read-config
-  "Read a config value from each of these in order, taking the first value found:
-   * Java system property
-   * env variable
-   * default value"
-  [property env default]
-  (or
-    (System/getProperty property)
-    (System/getenv env)
-    default))
+(defn- run-git
+  [& args]
+  (let [{:gitlibs/keys [command debug terminal]} @config/CONFIG
+        command-args (cons command args)]
+    (when debug
+      (apply printerrln command-args))
+    (let [proc-builder (ProcessBuilder. ^java.util.List command-args)
+          _ (when debug (.redirectError proc-builder ProcessBuilder$Redirect/INHERIT))
+          _ (when-not terminal (.put (.environment proc-builder) "GIT_TERMINAL_PROMPT" "0"))
+          proc (.start proc-builder)
+          exit (.waitFor proc)
+          out (slurp (.getInputStream proc))
+          err (slurp (.getErrorStream proc))] ;; if debug is true, stderr will be redirected instead
+      {:args command-args, :exit exit, :out out, :err err})))
 
 ;; dirs
 
-(def ^:private CACHE
-  (delay
-    (.getCanonicalPath
-      (let [lib-dir (read-config "clojure.gitlibs.dir" "GITLIBS" nil)]
-        (if (str/blank? lib-dir)
-          (jio/file (System/getProperty "user.home") ".gitlibs")
-          (jio/file lib-dir))))))
-
-(defn cache-dir
-  "Absolute path to the root of the cache"
-  []
-  @CACHE)
-
-(def ^:private COMMAND_CACHE
-  (delay (read-config "clojure.gitlibs.command" "GITLIBS_COMMAND" "git")))
-
-(defn git-command
-  "Path to git command to run"
-  []
-  @COMMAND_CACHE)
-
 (defn lib-dir
   ^File [lib]
-  (jio/file (cache-dir) "libs" (namespace lib) (name lib)))
+  (jio/file (:gitlibs/dir @config/CONFIG) "libs" (namespace lib) (name lib)))
 
 (defn- clean-url
   "Chop leading protocol, trailing .git, replace :'s with /"
@@ -85,70 +56,67 @@
 
 (defn git-dir
   ^File [url]
-  (jio/file (cache-dir) "_repos" (clean-url url)))
+  (jio/file (:gitlibs/dir @config/CONFIG) "_repos" (clean-url url)))
 
 (defn git-fetch
-  [^File git-dir opts]
+  [^File git-dir]
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts (git-command)
-                                     "--git-dir" git-path
+        {:keys [exit err] :as ret} (run-git "--git-dir" git-path
                                      "fetch" "--quiet" "--tags")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
 ;; TODO: restrict clone to an optional refspec?
 (defn git-clone-bare
-  [url ^File git-dir opts]
+  [url ^File git-dir]
   (printerrln "Cloning:" url)
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (runproc opts (git-command)
-                                     "clone" "--quiet" "--bare" url git-path)]
+        {:keys [exit err] :as ret} (run-git "clone" "--quiet" "--bare" url git-path)]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
     git-dir))
 
 (defn ensure-git-dir
   "Ensure the bare git dir for the specified url, return the path to the git dir."
-  [url opts]
+  [url]
   (let [git-dir-file (git-dir url)
         config-file (jio/file git-dir-file "config")]
     (when-not (.exists config-file)
-      (git-clone-bare url git-dir-file opts))
+      (git-clone-bare url git-dir-file))
     (.getCanonicalPath git-dir-file)))
 
 (defn git-checkout
-  [git-dir-path ^File lib-dir ^String rev opts]
+  [git-dir-path ^File lib-dir ^String rev]
   (let [rev-file (jio/file lib-dir rev)]
     (when-not (.exists rev-file)
-      (runproc opts (git-command)
-        "--git-dir" git-dir-path
-        "worktree" "add" "--force" "--detach" "--quiet"
-        (.getCanonicalPath rev-file) rev))))
+      (let [{:keys [exit err] :as ret}
+            (run-git "--git-dir" git-dir-path
+              "worktree" "add" "--force" "--detach"
+              (.getCanonicalPath rev-file) rev)]
+        (when-not (zero? exit)
+          (throw (ex-info (format "Unable to checkout %s%n%s" rev err) ret)))))))
 
 (defn git-rev-parse
-  [git-dir rev opts]
-  (let [{:keys [exit out]} (runproc opts (git-command)
-                             "--git-dir" git-dir
-                             "rev-parse" rev)]
+  [git-dir rev]
+  (let [{:keys [exit out]} (run-git "--git-dir" git-dir "rev-parse" rev)]
     (when (zero? exit)
       (str/trimr out))))
 
 ;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit> 
 (defn- ancestor?
-  [git-dir x y opts]
-  (let [args [(git-command) "--git-dir" git-dir "merge-base" "--is-ancestor" x y]
-        {:keys [exit err] :as ret} (apply runproc opts args)]
+  [git-dir x y]
+  (let [{:keys [exit err] :as ret} (run-git "--git-dir" git-dir "merge-base" "--is-ancestor" x y)]
     (condp = exit
       0 true
       1 false
       (throw (ex-info (format "Unable to compare commits %s%n%s" git-dir err) ret)))))
 
 (defn commit-comparator
-  [git-dir opts x y]
+  [git-dir x y]
   (cond
     (= x y) 0
-    (ancestor? git-dir x y opts) 1
-    (ancestor? git-dir y x opts) -1
+    (ancestor? git-dir x y) 1
+    (ancestor? git-dir y x) -1
     :else (throw (ex-info "" {}))))
 
 (defn match-exact

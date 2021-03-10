@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+* 2.1.129 on Mar 10, 2021
+  * Change git options during checkout to work with more git versions
+  * Check exit code on checkout and throw if failed
+  * Overhaul config and debug settings
+  * Change min Clojure dep to 1.9
 * 2.0.119 on Mar 10, 2021
   * Fix issues with checkouts of multiple commits per repo
   * resolve now only fetches if it can't resolve a ref
