@@ -75,10 +75,8 @@
 
 (defn tags
   "Returns coll of tags in git url"
-  ([url]
-   (tags url nil))
-  ([url opts]
-   (impl/tags (impl/ensure-git-dir url opts) opts)))
+  [url]
+  (impl/tags (impl/ensure-git-dir url)))
 
 (comment
   (System/setProperty "clojure.gitlibs.debug" "true")
@@ -94,5 +92,5 @@
     @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"))
     @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "9e1098965f2089c8cf492d23c0b7520f8690440a")))
 
-  (tags "https://github.com/clojure/tools.gitlibs.git" {:print-commands true})
+  (tags "https://github.com/clojure/tools.gitlibs.git")
   )
