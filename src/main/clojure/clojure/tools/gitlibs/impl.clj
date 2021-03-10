@@ -141,8 +141,8 @@
           (throw (IOException. (str "Prefix not unique: " prefix))))))))
 
 (defn tags
-  [git-dir opts]
-  (let [{:keys [exit out err] :as ret} (runproc opts "git" "--git-dir" git-dir "tag")]
+  [git-dir]
+  (let [{:keys [exit out err] :as ret} (run-git "--git-dir" git-dir "tag")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to get tags %s%n%s" git-dir err) ret)))
     (remove str/blank? (str/split-lines out))))
