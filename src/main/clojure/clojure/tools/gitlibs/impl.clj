@@ -63,7 +63,7 @@
   @CACHE)
 
 (def ^:private COMMAND_CACHE
-  (delay (read-config "clojure.gitlibs.command" "GITLIBS_CMD" "git")))
+  (delay (read-config "clojure.gitlibs.command" "GITLIBS_COMMAND" "git")))
 
 (defn git-command
   "Path to git command to run"
