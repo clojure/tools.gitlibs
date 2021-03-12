@@ -98,7 +98,7 @@
 
 (defn git-rev-parse
   [git-dir rev]
-  (let [{:keys [exit out]} (run-git "--git-dir" git-dir "rev-parse" rev)]
+  (let [{:keys [exit out]} (run-git "--git-dir" git-dir "rev-parse" (str rev "^{commit}"))]
     (when (zero? exit)
       (str/trimr out))))
 
