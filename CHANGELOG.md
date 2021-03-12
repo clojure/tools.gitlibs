@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 2.1.139 on Mar 11, 2021
+  * Add tags method
 * 2.1.129 on Mar 10, 2021
   * Change git options during checkout to work with more git versions
   * Check exit code on checkout and throw if failed
