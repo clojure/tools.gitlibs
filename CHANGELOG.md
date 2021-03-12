@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Fix rev-parse check on unfetched sha to report failure
 * 2.1.139 on Mar 11, 2021
   * Add tags method
 * 2.1.129 on Mar 10, 2021
