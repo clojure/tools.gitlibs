@@ -54,11 +54,18 @@ The API functions all take revs, which can be any git rev that resolves to a com
 Procured working trees are always cached on the basis of the rev's full sha, so using `procure` 
 repeatedly on a rev that does not resolve to a fixed sha may result in new checkouts in the cache.
 
-### Cache directory
+### Configuration
 
 Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
 
-The cache location can also be set with the environment variable GITLIBS.
+tools.gitlibs can be configured by either environment variable or Java system property. If both are provided, the Java system property takes precedence.
+
+| Env var | Java system property | default | description
+| ------- | -------------------- | ------- | -----------
+| GITLIBS | clojure.gitlibs.dir | ~/.gitlibs | Local directory cache for git repos and working trees |
+| GITLIBS_COMMAND | clojure.gitlibs.command | git | git command to run when shelling out (supply full path if needed) |
+| GITLIBS_DEBUG | clojure.gitlibs.debug | false | If true, print git commands and output to stderr |
+| GITLIBS_TERMINAL | clojure.gitlibs.terminal | false | If true, interactively prompt if needed |
 
 ## Example Usage
 
