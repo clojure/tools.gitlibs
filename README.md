@@ -40,8 +40,6 @@ For more information on creating keys and using the ssh-agent to manage your ssh
 * https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
 * https://help.github.com/articles/working-with-ssh-key-passphrases/
 
-*Note: user/password authentication is not supported for any protocol.*
-
 ### Revs
 
 The API functions all take revs, which can be any git rev that resolves to a commit, such as:
