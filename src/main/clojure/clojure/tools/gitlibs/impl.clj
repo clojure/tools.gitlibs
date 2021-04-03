@@ -62,7 +62,7 @@
   [^File git-dir]
   (let [git-path (.getCanonicalPath git-dir)
         {:keys [exit err] :as ret} (run-git "--git-dir" git-path
-                                     "fetch" "--quiet" "--tags")]
+                                     "fetch" "--quiet" "--all" "--tags" "--prune" "--prune-tags")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
@@ -71,7 +71,7 @@
   [url ^File git-dir]
   (printerrln "Cloning:" url)
   (let [git-path (.getCanonicalPath git-dir)
-        {:keys [exit err] :as ret} (run-git "clone" "--quiet" "--bare" url git-path)]
+        {:keys [exit err] :as ret} (run-git "clone" "--quiet" "--mirror" url git-path)]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
     git-dir))
