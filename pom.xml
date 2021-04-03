@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>tools.gitlibs</artifactId>
-  <version>2.1.145-SNAPSHOT</version>
+  <version>2.2.152</version>
   <name>tools.gitlibs</name>
 
   <parent>
@@ -66,6 +66,6 @@
     <connection>scm:git:git@github.com:clojure/tools.gitlibs.git</connection>
     <developerConnection>scm:git:git@github.com:clojure/tools.gitlibs.git</developerConnection>
     <url>git@github.com:clojure/tools.gitlibs.git</url>
-    <tag>HEAD</tag>
+    <tag>tools.gitlibs-2.2.152</tag>
   </scm>
 </project>
