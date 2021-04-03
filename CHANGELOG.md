@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 2.2.152 on Apr 3, 2021
   * Fix issue with fetching new commits on branches
 * 2.1.144 on Mar 12, 2021
   * Fix rev-parse check on unfetched sha to report failure

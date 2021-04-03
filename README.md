@@ -88,10 +88,10 @@ tools.gitlibs can be configured by either environment variable or Java system pr
 
 This project follows the version scheme MAJOR.MINOR.COMMITS where MAJOR and MINOR provide some relative indication of the size of the change, but do not follow semantic versioning. In general, all changes endeavor to be non-breaking (by moving to new names rather than by breaking existing names). COMMITS is an ever-increasing counter of commits since the beginning of this repository.
 
-Latest release: 2.1.144
+Latest release: 2.2.152
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.gitlibs%22)
-* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "2.1.144"}`
+* Coordinates: `org.clojure/tools.gitlibs {:mvn/version "2.2.152"}`
 
 # Developer Information
 
