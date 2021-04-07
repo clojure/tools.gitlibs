@@ -141,7 +141,9 @@
           (throw (IOException. (str "Prefix not unique: " prefix))))))))
 
 (defn tags
+  "Fetch, then return all tags in the git dir. "
   [git-dir]
+  (git-fetch (jio/file git-dir))
   (let [{:keys [exit out err] :as ret} (run-git "--git-dir" git-dir "tag")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to get tags %s%n%s" git-dir err) ret)))

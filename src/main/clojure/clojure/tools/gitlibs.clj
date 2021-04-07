@@ -74,7 +74,7 @@
           (->> shas (sort (partial impl/commit-comparator git-dir)) first))))))
 
 (defn tags
-  "Returns coll of tags in git url"
+  "Fetches, then returns coll of tags in git url"
   [url]
   (impl/tags (impl/ensure-git-dir url)))
 
