@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 2.2.156 on Apr 7, 2021
   * `tags` api should fetch to ensure all tags are returned
 * 2.2.152 on Apr 3, 2021
   * Fix issue with fetching new commits on branches
