@@ -47,6 +47,17 @@
   [url rev]
   (first (resolve-all url [rev])))
 
+(defn object-type
+  "Takes a git url and rev, and returns the object type, one of :tag :tree
+  :commit or :blob, or nil if not known or ambiguous."
+  [url rev]
+  (let [git-dir (impl/ensure-git-dir url)]
+    (if-let [type (impl/git-type git-dir rev)]
+      type
+      (do
+        (impl/git-fetch (jio/file git-dir))
+        (impl/git-type git-dir rev)))))
+
 (defn procure
   "Procure a working tree at rev for the git url representing the library lib,
   returns the directory path. lib is a qualified symbol where the qualifier is a

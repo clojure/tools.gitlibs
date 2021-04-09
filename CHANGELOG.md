@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Add new `object-type` api - takes rev, returns object type
 * 2.2.156 on Apr 7, 2021
   * `tags` api should fetch to ensure all tags are returned
 * 2.2.152 on Apr 3, 2021

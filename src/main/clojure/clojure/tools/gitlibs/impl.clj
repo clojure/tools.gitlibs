@@ -102,6 +102,12 @@
     (when (zero? exit)
       (str/trimr out))))
 
+(defn git-type
+  [git-dir rev]
+  (let [{:keys [exit out]} (run-git "--git-dir" git-dir "cat-file" "-t" rev)]
+    (when (zero? exit)
+      (keyword (str/trimr out)))))
+
 ;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit> 
 (defn- ancestor?
   [git-dir x y]
