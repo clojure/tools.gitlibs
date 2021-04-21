@@ -9,43 +9,30 @@ To access git dependencies (for example, via tools.deps), one must download git 
 and working trees as indicated by git shas. This library provides this functionality and also
 keeps a cache of git dirs and working trees that can be reused.
 
-## Usage
+## API
 
 The following API is provided in `clojure.tools.gitlibs`:
 
 * `(resolve git-url rev) ;; returns full sha of rev in git-url`
 * `(procure git-url lib rev) ;; returns working tree directory for git-url identified as lib at rev`
 * `(descendant git-url revs) ;; returns rev which is a descedant of all revs, or nil if none`
+* `(tags git-url) ;; returns a collection of tags in this git-url (fetches to refresh)`
+* `(cache-dir) ;; returns path to root of gitlibs cache dir`
 
 ### Git urls
 
 The following git url types are supported:
 
-* `https` - for public anonymous clone and fetch of public repos
-* `ssh` - for authenticated clone and fetch of private repos
-* `http` and `git` protocols are plain-text and not supported or recommended
-
-### SSH authentication for private repositories
-
-ssh authentication works by connecting to the local ssh agent (ssh-agent on \*nix or Pageant via PuTTY on Windows).
-The ssh-agent must have a registered identity for the key being used to access the Git repository.
-To check whether you have registered identities, use:
-
-`ssh-add -l`
-
-which should return one or more registered identities, typically the one at `~/.ssh/id_rsa`.
-
-For more information on creating keys and using the ssh-agent to manage your ssh identities, GitHub provides excellent info:
-
-* https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
-* https://help.github.com/articles/working-with-ssh-key-passphrases/
+* `https` - for public anonymous clone and fetch of public or private repos with credentials via git credential sources
+* `ssh` - for authenticated clone and fetch of private repos (uses ssh)
+* `http` and `git` protocols are plain-text and NOT supported or recommended
 
 ### Revs
 
 The API functions all take revs, which can be any git rev that resolves to a commit, such as:
 
 * Full sha (40 chars)
-* Prefix sha (sufficiently unique in the repo)
+* Prefix sha (sufficiently unique in the repo, often 7 chars)
 * Tag name
 * Branch name
 
@@ -54,7 +41,7 @@ repeatedly on a rev that does not resolve to a fixed sha may result in new check
 
 ### Configuration
 
-Downloaded git dirs and working trees are stored in ~/.gitlibs - this directory is just a cache and can be safely removed if needed.
+Downloaded git dirs and working trees are stored in the gitlibs cache dir, ~/.gitlibs by default. This directory is just a cache and can be safely removed if needed.
 
 tools.gitlibs can be configured by either environment variable or Java system property. If both are provided, the Java system property takes precedence.
 
@@ -96,9 +83,8 @@ Latest release: 2.3.161
 # Developer Information
 
 * [GitHub project](https://github.com/clojure/tools.gitlibs)
-* [API Docs](https://clojure.github.io/tools.gitlibs)
-* [How to contribute](https://dev.clojure.org/display/community/Contributing)
-* [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
+* [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS) - if you don't have an acct there, please ask at [Ask Clojure](https://ask.clojure.org)
+* [How to contribute](https://clojure.org/dev/dev)
 * [Continuous Integration](https://build.clojure.org/job/gitlibs/)
 * [Compatibility Test Matrix](https://build.clojure.org/job/tools.gitlibs-matrix/)
 
