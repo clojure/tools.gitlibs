@@ -61,8 +61,9 @@
 (defn git-fetch
   [^File git-dir]
   (let [git-path (.getCanonicalPath git-dir)
+        ;; NOTE: --prune-tags would be desirable here but was added in git 2.17.0
         {:keys [exit err] :as ret} (run-git "--git-dir" git-path
-                                     "fetch" "--quiet" "--all" "--tags" "--prune" "--prune-tags")]
+                                     "fetch" "--quiet" "--all" "--tags" "--prune")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to fetch %s%n%s" git-path err) ret)))))
 
