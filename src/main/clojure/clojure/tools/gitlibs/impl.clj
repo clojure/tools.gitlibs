@@ -45,14 +45,40 @@
   ^File [lib]
   (jio/file (:gitlibs/dir @config/CONFIG) "libs" (namespace lib) (name lib)))
 
+(def ^:private git-url-regex
+  #"([a-z0-9+.-]+):\/\/(?:(?:(?:[^@]+?)@)?([^/]+?)(?::[0-9]*)?)?(/[^:]+)")
+
+(def ^:private git-scp-regex
+  #"(?:(?:[^@]+?)@)?(.+?):([^:]+)")
+
 (defn- clean-url
-  "Chop leading protocol, trailing .git, replace :'s with /"
+  "Convert url into a safe relative path (this is not a reversible transformation)
+  based on scheme, host, and path (drop user and port).
+
+  Examples:
+    ssh://git@gitlab.com:3333/org/repo.git     => ssh/gitlab.com/org/repo
+    git@github.com:dotted.org/dotted.repo.git  => ssh/github.com/dotted.org/dotted.repo
+    file://../foo                              => file/REL/_DOTDOT_/foo
+    file:///Users/user/foo.git                 => file/Users/user/foo
+    ../foo                                     => file/REL/_DOTDOT_/foo
+    ~user/foo.git                              => file/REL/_TILDE_user/foo
+
+  * https://git-scm.com/docs/git-clone#_git_urls
+  * https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols
+  "
   [url]
-  (-> url
-    (str/split #"://")
-    last
-    (str/replace #"\.git$" "")
-    (str/replace #":" "/")))
+  (let [[scheme host path] (cond
+                             (str/starts-with? url "file://") ["file" nil (-> url (subs 7) (str/replace #"^([^/])" "REL/$1"))]
+                             (str/includes? url "://") (let [[_ s h p] (re-matches git-url-regex url)] [s h p])
+                             (str/includes? url ":") (let [[_ h p] (re-matches git-scp-regex url)] ["ssh" h p])
+                             :local-repo ["file" nil (str/replace url #"^([^/])" "REL/$1")])
+        clean-path (-> path
+                     (str/replace #"\.git/?$" "") ;; remove trailing .git or .git/
+                     (str/replace #"~" "_TILDE_")) ;; replace ~ with _TILDE_
+        dir-parts (->> (concat [scheme host] (str/split clean-path #"/")) ;; split on /
+                    (remove str/blank?) ;; remove any missing path segments
+                    (map #(-> % ({"." "_DOT_", ".." "_DOTDOT_"} %))))] ;; replace . or .. segments
+    (str/join "/" dir-parts)))
 
 (defn git-dir
   ^File [url]

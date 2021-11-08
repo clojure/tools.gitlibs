@@ -21,7 +21,7 @@
 (deftest test-procure
   (let [wt1 (gl/procure repo-url 'org.clojure/spec.alpha "739c1af")
         wt2 (gl/procure repo-url 'org.clojure/spec.alpha "6a56327")]
-    (is (.exists (jio/file (gl/cache-dir) "_repos" "github.com" "clojure" "spec.alpha")))
+    (is (.exists (jio/file (gl/cache-dir) "_repos" "https" "github.com" "clojure" "spec.alpha")))
     (is (= wt1 (.getAbsolutePath (jio/file (gl/cache-dir) "libs" "org.clojure" "spec.alpha" "739c1af56dae621aedf1bb282025a0d676eff713"))))
     (is (= wt2 (.getAbsolutePath (jio/file (gl/cache-dir) "libs" "org.clojure" "spec.alpha" "6a56327446c909db0d11ecf93a3c3d659b739be9"))))))
 
