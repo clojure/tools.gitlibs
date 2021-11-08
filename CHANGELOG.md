@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-212 - Support local file repos
 * 2.3.167 on Apr 22, 2021
   * Remove use of `--prune-tags` with `git fetch` as that was only added in git 2.17.0
 * 2.3.161 on Apr 9, 2021
