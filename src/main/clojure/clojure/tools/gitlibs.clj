@@ -89,7 +89,14 @@
   [url]
   (impl/tags (impl/ensure-git-dir url)))
 
+(defn commit-sha
+  "Returns unpeeled full commit sha, given a rev (which may be tag, branch, etc)"
+  [url rev]
+  (impl/git-rev-parse (impl/ensure-git-dir url) rev))
+
 (comment
+  (commit-sha "https://github.com/clojure/tools.build.git" "v0.8.2")
+
   (System/setProperty "clojure.gitlibs.debug" "true")
   (resolve "git@github.com:clojure/tools.gitlibs.git" "11fc774")
   (descendant "https://github.com/clojure/tools.gitlibs.git" ["5e2797a487c" "11fc774" "d82adc29" "815e312310"])

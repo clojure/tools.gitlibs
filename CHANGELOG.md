@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Add `commit-sha` api function to return commit sha for rev
 * 2.4.172 on Nov 8, 2021
   * TDEPS-212 - Support local file repos
 * 2.3.167 on Apr 22, 2021
