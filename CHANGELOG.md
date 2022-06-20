@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Sort tags in version order
 * 2.4.176 on Jun 16, 2022
   * Add `commit-sha` api function to return commit sha for rev
 * 2.4.172 on Nov 8, 2021
