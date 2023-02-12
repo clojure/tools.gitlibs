@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Don't use future to background the process reading (leaves non-daemon thread)
 * 2.5.186 on Feb 11, 2023
   * Don't block on big git output
 * 2.4.181 on Jun 19, 2022
