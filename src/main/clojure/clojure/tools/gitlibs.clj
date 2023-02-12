@@ -111,4 +111,7 @@
     @(future (procure "https://github.com/cognitect-labs/test-runner.git" 'cognitect-labs/test-runner "9e1098965f2089c8cf492d23c0b7520f8690440a")))
 
   (tags "https://github.com/clojure/tools.gitlibs.git")
+
+  ;; big output
+  (tags "https://github.com/confluentinc/kafka-streams-examples.git")
   )

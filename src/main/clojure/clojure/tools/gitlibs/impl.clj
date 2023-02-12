@@ -14,7 +14,7 @@
     [clojure.tools.gitlibs.config :as config])
   (:import
     [java.lang ProcessBuilder$Redirect]
-    [java.io File FilenameFilter IOException]))
+    [java.io File FilenameFilter InputStream IOException StringWriter]))
 
 (set! *warn-on-reflection* true)
 
@@ -23,6 +23,16 @@
 (defn printerrln [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
+
+(defn capture
+  "Reads from input-stream until EOF and returns a String (or nil if 0 length).
+   Takes same opts as clojure.java.io/copy - :buffer and :encoding"
+  [^InputStream input-stream]
+  (let [writer (StringWriter.)]
+    (jio/copy input-stream writer)
+    (let [s (str/trim (.toString writer))]
+      (when-not (zero? (.length s))
+        s))))
 
 (defn- run-git
   [& args]
@@ -34,10 +44,10 @@
           _ (when debug (.redirectError proc-builder ProcessBuilder$Redirect/INHERIT))
           _ (when-not terminal (.put (.environment proc-builder) "GIT_TERMINAL_PROMPT" "0"))
           proc (.start proc-builder)
-          exit (.waitFor proc)
-          out (slurp (.getInputStream proc))
-          err (slurp (.getErrorStream proc))] ;; if debug is true, stderr will be redirected instead
-      {:args command-args, :exit exit, :out out, :err err})))
+          out (future (capture (.getInputStream proc)))
+          err (future (capture (.getErrorStream proc))) ;; if debug is true, stderr will be redirected instead
+          exit (.waitFor proc)]
+      {:args command-args, :exit exit, :out @out, :err @err})))
 
 ;; dirs
 
@@ -135,7 +145,7 @@
     (when (zero? exit)
       (keyword (str/trimr out)))))
 
-;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit> 
+;; git merge-base --is-ancestor <maybe-ancestor-commit> <descendant-commit>
 (defn- ancestor?
   [git-dir x y]
   (let [{:keys [exit err] :as ret} (run-git "--git-dir" git-dir "merge-base" "--is-ancestor" x y)]

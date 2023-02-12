@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Don't block on big git output
 * 2.4.181 on Jun 19, 2022
   * Sort tags in version order
 * 2.4.176 on Jun 16, 2022
