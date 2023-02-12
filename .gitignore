@@ -4,3 +4,6 @@ target/
 .nrepl*
 .cpcache
 .lein*
+.calva/
+.clj-kondo/
+.lsp/
