@@ -7,3 +7,4 @@ target/
 .calva/
 .clj-kondo/
 .lsp/
+.vscode/
