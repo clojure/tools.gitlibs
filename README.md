@@ -85,8 +85,7 @@ Latest release: 2.5.190
 * [GitHub project](https://github.com/clojure/tools.gitlibs)
 * [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS) - if you don't have an acct there, please ask at [Ask Clojure](https://ask.clojure.org)
 * [How to contribute](https://clojure.org/dev/dev)
-* [Continuous Integration](https://build.clojure.org/job/gitlibs/)
-* [Compatibility Test Matrix](https://build.clojure.org/job/tools.gitlibs-matrix/)
+* [Continuous Integration](https://github.com/clojure/tools.gitlibs/actions/workflows/test.yml)
 
 # Copyright and License
 
