@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* 2.5.198 on May 31, 2023
+* 2.5.197 on May 31, 2023
   * TDEPS-248 - Make `tags` return known tags when offline
 * 2.5.190 on Feb 12, 2023
   * Don't use future to background the process reading (leaves non-daemon thread)
