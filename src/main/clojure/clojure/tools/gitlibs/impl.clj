@@ -101,6 +101,15 @@
   ^File [url]
   (jio/file (:gitlibs/dir @config/CONFIG) "_repos" (clean-url url)))
 
+(defn git-try-fetch
+  "Try to fetch and return the error code (0=success)"
+  [^File git-dir]
+  (let [git-path (.getCanonicalPath git-dir)
+        ;; NOTE: --prune-tags would be desirable here but was added in git 2.17.0
+        {:keys [exit]} (run-git "--git-dir" git-path
+                                "fetch" "--quiet" "--all" "--tags" "--prune")]
+    exit))
+
 (defn git-fetch
   [^File git-dir]
   (let [git-path (.getCanonicalPath git-dir)
@@ -193,7 +202,7 @@
 (defn tags
   "Fetch, then return all tags in the git dir."
   [git-dir]
-  (git-fetch (jio/file git-dir))
+  (git-try-fetch (jio/file git-dir))
   (let [{:keys [exit out err] :as ret} (run-git "--git-dir" git-dir "tag" "--sort=v:refname")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to get tags %s%n%s" git-dir err) ret)))
