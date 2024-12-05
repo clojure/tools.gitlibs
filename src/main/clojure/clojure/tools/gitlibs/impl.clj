@@ -126,7 +126,7 @@
   (let [git-path (.getCanonicalPath git-dir)
         {:keys [exit err] :as ret} (run-git "clone" "--quiet" "--mirror" url git-path)]
     (when-not (zero? exit)
-      (throw (ex-info (format "Unable to clone %s%n%s" git-path err) ret)))
+      (throw (ex-info (format "Unable to clone %s to %s:%n%s" url git-path err) ret)))
     git-dir))
 
 (defn ensure-git-dir

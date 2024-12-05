@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Improve error message when clone fails to include url
 * 2.5.197 on May 31, 2023
   * TDEPS-248 - Make `tags` return known tags when offline
 * 2.5.190 on Feb 12, 2023
