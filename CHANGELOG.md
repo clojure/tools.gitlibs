@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 2.6.206 on Dec 5, 2024
   * Bump clojure dep to 1.11.4
   * Improve error message when clone fails to include url
 * 2.5.197 on May 31, 2023
