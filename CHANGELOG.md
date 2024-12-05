@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * Bump clojure dep to 1.11.4
   * Improve error message when clone fails to include url
 * 2.5.197 on May 31, 2023
   * TDEPS-248 - Make `tags` return known tags when offline
