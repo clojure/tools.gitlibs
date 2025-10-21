@@ -3,6 +3,7 @@
   <artifactId>tools.gitlibs</artifactId>
   <version>2.6.207-SNAPSHOT</version>
   <name>tools.gitlibs</name>
+  <description>API for retrieving, caching, and programatically accessing git libraries from Clojure.</description>
 
   <parent>
     <groupId>org.clojure</groupId>
