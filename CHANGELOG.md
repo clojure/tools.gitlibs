@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Fix NPE on tags if repo has no tags
 * 2.6.212 on Dec 30, 2025
   * Bump parent pom to latest
 * 2.6.206 on Dec 5, 2024

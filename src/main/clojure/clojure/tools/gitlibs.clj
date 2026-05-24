@@ -85,7 +85,7 @@
           (->> shas (sort (partial impl/commit-comparator git-dir)) first))))))
 
 (defn tags
-  "Fetches, then returns coll of tags in git url"
+  "Fetches, then returns coll of tags in git url, nil if none"
   [url]
   (impl/tags (impl/ensure-git-dir url)))
 
@@ -114,4 +114,8 @@
 
   ;; big output
   (tags "https://github.com/confluentinc/kafka-streams-examples.git")
+
+  ;; no tags
+  (tags "https://github.com/clojure/clojure-site.git")
+  (clojure.repl/pst *e)
   )

@@ -206,4 +206,5 @@
   (let [{:keys [exit out err] :as ret} (run-git "--git-dir" git-dir "tag" "--sort=v:refname")]
     (when-not (zero? exit)
       (throw (ex-info (format "Unable to get tags %s%n%s" git-dir err) ret)))
-    (remove str/blank? (str/split-lines out))))
+    (when out
+      (remove str/blank? (str/split-lines out)))))
