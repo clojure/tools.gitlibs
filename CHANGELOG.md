@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 2.6.217 on May 24, 2025
   * Fix NPE on tags if repo has no tags
 * 2.6.212 on Dec 30, 2025
   * Bump parent pom to latest
